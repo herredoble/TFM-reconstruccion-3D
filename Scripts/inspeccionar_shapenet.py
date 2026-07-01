@@ -28,7 +28,6 @@ Uso (desde C:\\edf\\tfm):
   python Scripts/inspeccionar_shapenet.py --descargar     # además baja los synsets de vasijas
 """
 import os
-import json
 import argparse
 
 REPO_ID = "ShapeNet/ShapeNetCore"
@@ -40,60 +39,57 @@ VASIJAS = {
     "02880940": "bowl (cuenco)",
     "02876657": "bottle (botella)",
     "03593526": "jar (jarra/tarro)",
+    "02946921": "can (lata)",
+    "03991062": "flowerpot (maceta)",
+    "02747177": "trash bin (cubo)",
 }
 
 BASE = r"C:\edf\tfm"
-DEST = os.path.join(BASE, "Datos", "shapenet_vasijas")
+DEST = os.path.join(BASE, "Datos", "shapenet", "raw")
 
 
 def _token():
-    return os.environ.get("HF_TOKEN")
+    """Devuelve el token de HF: primero env var, luego cache de hf auth login."""
+    tok = os.environ.get("HF_TOKEN")
+    if tok:
+        return tok
+    try:
+        from huggingface_hub import get_token
+        return get_token()
+    except Exception:
+        return None
 
 
 def listar_ficheros_repo():
     """Imprime los ficheros del repo de HF para ver los nombres exactos."""
     from huggingface_hub import list_repo_files
-    ficheros = list_repo_files(repo_id=REPO_ID, repo_type=REPO_TYPE, token=_token())
+    ficheros = list(list_repo_files(repo_id=REPO_ID, repo_type=REPO_TYPE, token=_token()))
     print(f"\nFicheros en {REPO_ID} ({len(ficheros)}):")
     for f in sorted(ficheros):
         print("  ", f)
     return ficheros
 
 
-def cargar_taxonomia():
-    """Descarga SOLO taxonomy.json y lo devuelve parseado."""
-    from huggingface_hub import hf_hub_download
-    ruta = hf_hub_download(
-        repo_id=REPO_ID, repo_type=REPO_TYPE,
-        filename="taxonomy.json", token=_token(),
-    )
-    with open(ruta, "r", encoding="utf-8") as f:
-        return json.load(f)
+def resumen_repo():
+    """Lista los synsets disponibles en el repo y resalta los de vasijas."""
+    from huggingface_hub import list_repo_files
+    ficheros = list(list_repo_files(repo_id=REPO_ID, repo_type=REPO_TYPE, token=_token()))
+    zips = sorted(f.replace(".zip", "") for f in ficheros if f.endswith(".zip"))
 
+    print(f"\nShapeNet/ShapeNetCore — {len(zips)} categorias disponibles")
+    print("-" * 50)
+    for sid in zips:
+        marca = f"  <== {VASIJAS[sid]}" if sid in VASIJAS else ""
+        print(f"  {sid}{marca}")
+    print("-" * 50)
 
-def listar_categorias(taxonomia):
-    """taxonomy.json es una lista de nodos {synsetId, name, numInstances, children}."""
-    filas = []
-    for nodo in taxonomia:
-        sid = nodo.get("synsetId", "")
-        nombre = nodo.get("name", "")
-        n = nodo.get("numInstances", 0)
-        filas.append((n, sid, nombre))
-    filas.sort(reverse=True)
-
-    print(f"\n{'N':>7}  {'synsetId':<10}  categoria")
-    print("-" * 64)
-    for n, sid, nombre in filas:
-        marca = "   <== VASIJA" if sid in VASIJAS else ""
-        print(f"{n:>7}  {sid:<10}  {nombre[:38]}{marca}")
-    print("-" * 64)
-    print(f"Total categorias: {len(filas)}  ·  Total modelos: {sum(f[0] for f in filas)}")
-
-    print("\n=== Resumen VASIJAS ===")
+    print("\n=== Vasijas del TFM ===")
     for sid, etiqueta in VASIJAS.items():
-        match = next((f for f in filas if f[1] == sid), None)
-        n = match[0] if match else "NO ENCONTRADO en taxonomy"
-        print(f"  {sid}  {etiqueta:<18}  -> {n} modelos")
+        encontrado = f"{sid}.zip" in ficheros
+        estado = "OK — disponible" if encontrado else "NO encontrado en el repo"
+        print(f"  {sid}  {etiqueta:<18}  {estado}")
+    print()
+    print("Para descargar: python Scripts/inspeccionar_shapenet.py --descargar")
 
 
 def descargar_vasijas():
@@ -121,19 +117,12 @@ def main():
     args = ap.parse_args()
 
     if not _token():
-        print("AVISO: no hay HF_TOKEN en el entorno. Como el dataset es 'gated', "
-              "ejecuta antes 'huggingface-cli login' o define HF_TOKEN.\n")
+        print("AVISO: no se encontró token de HF. Ejecuta 'hf auth login' o define HF_TOKEN.\n")
 
     if args.listar:
         listar_ficheros_repo()
-
-    try:
-        taxonomia = cargar_taxonomia()
-        listar_categorias(taxonomia)
-    except Exception as e:
-        print(f"\nNo se pudo cargar taxonomy.json: {e}")
-        print("Comprueba: (1) términos aceptados en la web del dataset, (2) token válido.")
-        print("Ejecuta con --listar para ver qué ficheros hay realmente en el repo.")
+    else:
+        resumen_repo()
 
     if args.descargar:
         descargar_vasijas()

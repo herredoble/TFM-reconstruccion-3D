@@ -153,4 +153,71 @@ drive.mount('/content/drive')
 ```
 - **No hace falta ShapeNet** para que el TFM funcione: con Objaverse + Fantastic Breaks (+ CO3D/Thingi10K) está todo cubierto. ShapeNet solo facilita comparar con otros papers.
 - Los **nombres de categoría** varían entre datasets (CO3D usa `cup`, Objaverse `mug`); por eso en Objaverse conviene imprimir primero las claves disponibles (ver 4.1).
-- Fantastic Breaks es **pequeño** (~150 objetos en total): úsalo como **test/validación con roturas reales**, y entrena con roturas **sintéticas** sobre Objaverse (ver Parte 2 del *Tutorial práctico*).
+- Fantastic Breaks es **pequeño** (~150 objetos en total): úsalo como **test/validación con roturas reales**, y entrena con roturas **sintéticas** sobre Objaverse.
+
+---
+
+## 6. Categorías de ShapeNet (referencia completa)
+
+Las 55 categorías de ShapeNetCore con sus synset IDs. Las marcadas con `<-- vasija` son las relevantes para el TFM.
+
+| Synset ID | Categoría | Nota |
+|-----------|-----------|------|
+| 02691156 | airplane (avión) | |
+| 02747177 | trash bin (cubo basura) | |
+| 02773838 | bag (bolso) | |
+| 02801938 | basket (cesta) | |
+| 02808440 | bathtub (bañera) | |
+| 02818832 | bed (cama) | |
+| 02828884 | bench (banco) | |
+| 02843684 | birdhouse (casita pájaro) | |
+| 02871439 | bookshelf (estantería) | |
+| 02876657 | bottle (botella) | **vasija** |
+| 02880940 | bowl (cuenco) | **vasija** |
+| 02924116 | bus (autobús) | |
+| 02933112 | cabinet (armario) | |
+| 02942699 | camera (cámara) | |
+| 02946921 | can (lata) | |
+| 02954340 | cap (gorra) | |
+| 02958343 | car (coche) | |
+| 02992529 | cellphone (móvil) | |
+| 03001627 | chair (silla) | |
+| 03046257 | clock (reloj) | |
+| 03085013 | keyboard (teclado) | |
+| 03207941 | dishwasher (lavavajillas) | |
+| 03211117 | monitor (pantalla) | |
+| 03261776 | earphone (auricular) | |
+| 03325088 | faucet (grifo) | |
+| 03337140 | file cabinet (archivador) | |
+| 03467517 | guitar (guitarra) | |
+| 03513137 | helmet (casco) | industrial |
+| 03593526 | jar (tarro) | **vasija** |
+| 03624134 | knife (cuchillo) | |
+| 03636649 | lamp (lámpara) | |
+| 03642806 | laptop (portátil) | |
+| 03691459 | loudspeaker (altavoz) | |
+| 03710193 | mailbox (buzón) | |
+| 03759954 | microphone (micrófono) | |
+| 03761084 | microwave (microondas) | |
+| 03790512 | motorbike (moto) | |
+| 03797390 | mug (taza) | **vasija** |
+| 03928116 | piano (piano) | |
+| 03938244 | pillow (almohada) | |
+| 03948459 | pistol (pistola) | |
+| 03991062 | flowerpot (maceta) | **vasija** |
+| 04004475 | printer (impresora) | |
+| 04074963 | remote control (mando) | |
+| 04090263 | rifle (rifle) | |
+| 04099429 | rocket (cohete) | |
+| 04225987 | skateboard (patinete) | |
+| 04256520 | sofa (sofá) | |
+| 04330267 | stove (cocina/horno) | |
+| 04379243 | table (mesa) | |
+| 04401088 | telephone (teléfono) | |
+| 04460130 | tower (torre) | |
+| 04468005 | train (tren) | |
+| 04530566 | watercraft (barco) | |
+| 04554684 | washer (lavadora) | |
+
+**Synsets P0:** mug `03797390` · bowl `02880940` · bottle `02876657` · jar `03593526` · can `02946921`
+**Opcional:** flowerpot `03991062` (misma topología, fácil de añadir si conviene más volumen)

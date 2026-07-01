@@ -21,8 +21,8 @@ import shutil
 import argparse
 from pathlib import Path
 
-DESTINO = Path(r"C:\EDF\TFM\Datos\co3d")
-REPO_DIR = Path(r"C:\EDF\TFM\Datos\co3d_repo")
+DESTINO = Path(r"C:\EDF\TFM\Datos\co3d\raw")
+REPO_DIR = Path(r"C:\EDF\TFM\Datos\co3d\repo")
 
 # Categorías de vasijas/recipientes disponibles en CO3D
 CATEGORIAS_VASIJAS = ["cup", "bowl", "vase"]
@@ -54,16 +54,14 @@ def instalar_dependencias():
     print("[OK] Dependencias instaladas.")
 
 
-def descargar_categoria(categoria: str):
+def descargar_categorias(categorias: list):
     script = REPO_DIR / "co3d" / "download_dataset.py"
     if not script.exists():
-        # Ruta alternativa según versión del repo
         script = REPO_DIR / "download_dataset.py"
 
-    destino_cat = DESTINO / categoria
     print(f"\n{'='*55}")
-    print(f"  Descargando: {categoria}")
-    print(f"  Destino:     {destino_cat}")
+    print(f"  Descargando: {', '.join(categorias)}")
+    print(f"  Destino:     {DESTINO}")
     print(f"{'='*55}")
 
     DESTINO.mkdir(parents=True, exist_ok=True)
@@ -71,7 +69,7 @@ def descargar_categoria(categoria: str):
     subprocess.run(
         [sys.executable, str(script),
          "--download_folder", str(DESTINO),
-         "--category", categoria],
+         "--download_categories", ",".join(categorias)],
         check=True
     )
 
@@ -116,9 +114,9 @@ def main():
     for cat in categorias:
         if cat not in CATEGORIAS_VASIJAS:
             print(f"[AVISO] '{cat}' no está en la lista de vasijas. Categorías válidas: {CATEGORIAS_VASIJAS}")
-            continue
-        descargar_categoria(cat)
+            return
 
+    descargar_categorias(categorias)
     resumen()
 
 
