@@ -23,7 +23,7 @@ import objaverse
 # --- Configuración ---
 BASE = r"C:\edf\tfm"
 DATOS = os.path.join(BASE, "Datos")
-DEST_GLB = os.path.join(DATOS, "tazas_objaverse")
+DEST_GLB = os.path.join(DATOS, "objaverse", "raw")
 CATEGORIAS = ["mug", "cup", "teacup", "measuring_cup", "Dixie_cup"]  # ajustable
 
 
@@ -37,7 +37,8 @@ def main():
     print(f"Categorías: {CATEGORIAS}")
     print(f"Total tazas únicas: {len(uids)}")
 
-    with open(os.path.join(DATOS, "tazas_por_categoria.json"), "w", encoding="utf-8") as f:
+    os.makedirs(os.path.join(DATOS, "objaverse", "metadatos"), exist_ok=True)
+    with open(os.path.join(DATOS, "objaverse", "metadatos", "tazas_por_categoria.json"), "w", encoding="utf-8") as f:
         json.dump(por_categoria, f, ensure_ascii=False, indent=2)
 
     # 2) Descargar metadatos (toda la info disponible de cada objeto)
@@ -45,14 +46,14 @@ def main():
     anotaciones = objaverse.load_annotations(uids)   # {uid: dict con toda la info}
 
     # 3a) Guardar metadatos crudos completos (JSON)
-    with open(os.path.join(DATOS, "metadatos_tazas_completo.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(DATOS, "objaverse", "metadatos", "metadatos_tazas_completo.json"), "w", encoding="utf-8") as f:
         json.dump(anotaciones, f, ensure_ascii=False, indent=2)
 
     # 3b) Guardar resumen legible (CSV)
     cat_de = {u: [c for c in CATEGORIAS if u in set(por_categoria[c])] for u in uids}
     columnas = ["uid", "nombre", "categorias_lvis", "tags", "licencia", "autor",
                 "vertices", "caras", "animaciones", "url"]
-    with open(os.path.join(DATOS, "metadatos_tazas.csv"), "w", newline="", encoding="utf-8") as f:
+    with open(os.path.join(DATOS, "objaverse", "metadatos", "metadatos_tazas.csv"), "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(columnas)
         for u in uids:

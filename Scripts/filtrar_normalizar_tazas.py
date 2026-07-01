@@ -22,9 +22,9 @@ import os, csv, glob
 import trimesh
 
 BASE = r"C:\edf\tfm"
-ORIGEN = os.path.join(BASE, "Datos", "tazas_objaverse")
-DESTINO = os.path.join(BASE, "Datos", "tazas_limpias")
-INFORME = os.path.join(BASE, "Datos", "informe_filtrado.csv")
+ORIGEN = os.path.join(BASE, "Datos", "objaverse", "raw")
+DESTINO = os.path.join(BASE, "Datos", "objaverse", "limpias")
+INFORME = os.path.join(BASE, "Datos", "objaverse", "metadatos", "informe_filtrado.csv")
 
 MIN_FACES = 1000        # menos que esto = degenerada -> descartar
 MAX_FACES = 200000      # mas que esto = pesada -> intentar simplificar
