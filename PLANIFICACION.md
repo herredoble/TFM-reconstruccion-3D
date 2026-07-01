@@ -24,10 +24,10 @@ Ver `Documentacion/TFM_11_Contratos_Interfaz.md` para el formato de referencia.
 
 ## 🔴 URGENTE ESTA SEMANA — Raquel (primera tarea concreta)
 
-### 0. Subir datos procesados a Google Drive
-Antes de la reunión del grupo, subir estas dos carpetas a la carpeta Drive compartida (~700 MB):
-- `Datos/shapenet/limpias/`
-- `Datos/objaverse/limpias/`
+### ~~0. Subir datos procesados a Google Drive~~ ✅ HECHO (1 jul 2026)
+~~Antes de la reunión del grupo, subir estas dos carpetas a la carpeta Drive compartida (~700 MB):~~
+- ~~`Datos/shapenet/limpias/`~~
+- ~~`Datos/objaverse/limpias/`~~
 
 ### 1. Preprocesado de Fantastic Breaks para E3
 
