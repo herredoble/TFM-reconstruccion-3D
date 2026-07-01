@@ -24,7 +24,12 @@ Ver `Documentacion/TFM_11_Contratos_Interfaz.md` para el formato de referencia.
 
 ## 🔴 URGENTE ESTA SEMANA — Raquel (primera tarea concreta)
 
-### Preprocesado de Fantastic Breaks para E3
+### 0. Subir datos procesados a Google Drive
+Antes de la reunión del grupo, subir estas dos carpetas a la carpeta Drive compartida (~700 MB):
+- `Datos/shapenet/limpias/`
+- `Datos/objaverse/limpias/`
+
+### 1. Preprocesado de Fantastic Breaks para E3
 
 Tienes 150 pares roto/completo en `Datos/fantastic_breaks/`. Antes de que Rocío pueda entrenar el modelo de reparación necesita los datos en el formato correcto.
 
@@ -35,6 +40,12 @@ Tienes 150 pares roto/completo en `Datos/fantastic_breaks/`. Antes de que Rocío
 4. Filtrar solo las clases vasija (00=mug, 02=bowl, 03=cup, 05=jar) → ~61 pares útiles
 
 **Por qué 2.048:** los papers de shape completion (PoinTr, PCN, SnowFlakeNet) usan 2.048 puntos como input estándar. Si luego Rocío elige un modelo diferente se puede regenerar, pero 2.048 es la apuesta segura.
+
+### 2. Subir Fantastic Breaks procesado a Drive
+Una vez generados los pares `.npy` (serán ~15 MB en total), subirlos a la carpeta Drive del grupo en `fantastic_breaks_procesado/` para que Rocío pueda empezar a entrenar sin esperar a descargar los 8 GB raw.
+
+> Fantastic Breaks raw (8 GB) NO hace falta subirlo a Drive — Rocío lo descarga con:
+> `python Scripts/descargar_fantastic_breaks.py`
 
 ---
 
