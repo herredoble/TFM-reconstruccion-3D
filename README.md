@@ -3,7 +3,20 @@
 De una foto de un objeto roto → malla 3D reparada → archivo STL imprimible.
 
 **Equipo:** Raquel Roca · Rocío · Álvaro · Almu · Luis  
-**Entrega:** 15 septiembre 2026
+**Entrega:** 15 septiembre 2026  
+**Última actualización:** 1 julio 2026
+
+---
+
+## Cómo usamos este repositorio
+
+El código y la documentación viven aquí; los datos no (son demasiado grandes y están en Drive).
+
+- `main` es la rama estable — nadie sube directamente a main, siempre por PR
+- Cada persona trabaja en su rama: `e2-alvaro`, `e3-rocio`, etc.
+- Los scripts se documentan con docstring al principio del archivo
+- Cuando avancéis o toméis una decisión técnica importante, añadid una entrada en `NOTAS_Y_HALLAZGOS.md` — es el documento vivo del proyecto, lo que leerá todo el equipo para ponerse al día
+- Si cambia algo que afecta a otro equipo (especialmente el formato E2→E3), actualizad `TFM_11_Contratos_Interfaz.md` y avisad en el grupo
 
 ---
 
@@ -109,11 +122,13 @@ TFM-reconstruccion-3D/
 
 | Dataset | Estado | Modelos listos | Uso |
 |---|---|---|---|
-| ShapeNet (7 synsets vasijas) | ✅ Descargado y filtrado | 2.170 `.ply` | E2 + E3 entrenamiento |
-| Objaverse (tazas/vasijas) | ✅ Descargado y filtrado | 197 `.ply` | E2 + E3 complemento |
-| Fantastic Breaks | ✅ Descargado | 150 pares roto/completo | E3 entrenamiento |
-| CO3D | ⏸ Pospuesto a P1 | — | E1+E2 fotos reales |
-| Thingi10K | ⏸ Pendiente | — | E4 imprimibilidad |
+| ShapeNet (mug·bowl·bottle·jar·can·flowerpot·trash_bin) | ✅ Descargado y filtrado | 2.170 `.ply` | E2 + E3 entrenamiento — referencia estándar de papers |
+| Objaverse (tazas/vasijas) | ✅ Descargado y filtrado | 197 `.ply` | E2 + E3 complemento — más variedad de estilos |
+| Fantastic Breaks | ✅ Descargado | 150 pares roto↔completo (61 vasijas) | E3 entrenamiento — único dataset con objetos reales rotos |
+| CO3D | ⏸ Pospuesto a P1 | — | E1+E2 fotos reales (~150 GB, cuando pipeline funcione) |
+| Thingi10K | ⏸ Pendiente | — | E4 validar imprimibilidad |
+
+Para entender qué contiene cada dataset, qué decisiones se tomaron y por qué: leed `NOTAS_Y_HALLAZGOS.md`.
 
 ---
 
