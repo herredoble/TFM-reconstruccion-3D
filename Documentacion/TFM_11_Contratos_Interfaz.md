@@ -44,13 +44,21 @@ Convención general del proyecto:
 
 | Campo | Formato acordado |
 |-------|------------------|
-| Geometría | nube de puntos `.ply` (N puntos, ej. 2048/8192) **o** malla `.obj` |
-| Normalización | centrada en origen, escala unidad |
-| Estado | puede estar **incompleta** (huecos / parte rota) — es lo normal |
-| Metadatos | `info.json`: nº puntos, bounding box, método usado |
+| Geometría | nube de puntos `.npy`, array float32 shape **(2048, 3)** |
+| Coordenadas | XYZ en metros, sin normales |
+| Normalización | centrada en origen, escalada a esfera unidad (radio máximo = 1) |
+| Estado | nube **incompleta** (parte rota / huecos) — es la entrada al modelo |
+| Metadatos | `info.json`: nº puntos, bounding box, método de E2 usado |
 
-> Si E3 usa un modelo de *shape completion* tipo PCN/Completion3D, espera nube de
-> puntos de tamaño fijo. **Acordar el nº de puntos** con quien lleve E3.
+> **Formato confirmado el 11 jul 2026** a partir de los datos de entrenamiento de E3.
+> Fantastics Breaks procesado usa este mismo formato: 2.048 puntos, float32, (2048,3).
+> Si el modelo de Rocío necesita otro nº de puntos, avisar a Raquel para regenerar.
+
+**Cómo cargarlo:**
+```python
+import numpy as np, torch
+nube_rota = torch.from_numpy(np.load("objeto_roto.npy"))  # (2048, 3)
+```
 
 ---
 

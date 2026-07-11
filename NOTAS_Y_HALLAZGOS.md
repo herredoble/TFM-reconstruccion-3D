@@ -179,6 +179,34 @@ De 150 pares totales, **~61 son vasijas directamente usables** para entrenar E3.
 
 ## Estado y pendientes
 
+### H11 — Fantastic Breaks: mapping completo de clases y corrección 03/05
+*(11 jul 2026)*
+
+Mapping real verificado contra conteos del paper (Lamb et al., CVPR 2023, Tabla 1).
+El README del GitHub y el ZIP no incluyen ningún fichero de documentación con el mapping.
+
+| Carpeta | Nombre   | Pares | Grupo TFM   |
+|---------|----------|-------|-------------|
+| 00      | mug      |  30   | vasija ✅   |
+| 01      | plate    |  35   | plato (opcional) |
+| 02      | bowl     |  17   | vasija ✅   |
+| **03**  | **jar**  |   6   | vasija ✅ ← **CORRECCION: antes llamado cup** |
+| **05**  | **cup**  |   8   | vasija ✅ ← **CORRECCION: antes llamado jar** |
+| 06      | misc     |   2   | descartar   |
+| 07      | box/misc |   3   | descartar   |
+| 09      | statue   |  30   | opcional (augmentation) |
+| 10      | misc     |   1   | descartar   |
+| 12      | coaster  |   6   | descartar   |
+| 13      | misc     |   1   | descartar   |
+| 14      | misc     |   3   | descartar   |
+| 17      | misc     |   1   | descartar   |
+| 18      | misc     |   4   | descartar   |
+| 19      | box/misc |   3   | descartar   |
+
+**Plate (01, 35 pares) y statue (09, 30 pares) son las candidatas opcionales** si se necesita
+más volumen de entrenamiento. Plate comparte topología plana (rompe diferente a vasija).
+Statue añade variedad geométrica extrema. Ambas se activan con `--clases vasijas,plate,statue`.
+
 ### Hecho
 - [x] 246 modelos .glb de Objaverse descargados → `Datos/objaverse/raw/` — `Scripts/descargar_tazas.py`
 - [x] 197 modelos Objaverse normalizados (.ply) → `Datos/objaverse/limpias/` — `Scripts/filtrar_normalizar_tazas.py`
@@ -186,6 +214,7 @@ De 150 pares totales, **~61 son vasijas directamente usables** para entrenar E3.
 - [x] 2.170 modelos ShapeNet filtrados y normalizados (.ply) → `Datos/shapenet/limpias/` — `Scripts/filtrar_normalizar_shapenet.py`
 - [x] **Dataset combinado listo: 2.367 modelos .ply para entrenar**
 - [x] Fantastic Breaks descargado — 150 pares roto/completo en `Datos/fantastic_breaks/` — estructura por carpeta: `model_c.ply` (completo), `model_b_0.ply` (roto), `model_r_0.ply` (fragmento), `meta_0.npz` (metadatos)
+- [x] **Fantastic Breaks preprocesado** — 61 pares vasija (mug+bowl+jar+cup) submuestreados a 2.048 pts → `Datos/fantastic_breaks/procesado/` (122 archivos .npy, 3 MB) — `Scripts/preprocesar_fantastic_breaks.py` (11 jul 2026)
 - [x] Hallazgo documentado: solo 6/197 Objaverse son watertight → justifica etapa 4
 - [x] Cuaderno `TFM_06_Cuaderno_Tazas.ipynb` probado en local y Colab
 - [x] Nerfstudio probado en Colab
