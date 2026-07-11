@@ -29,20 +29,21 @@ Ver `Documentacion/TFM_11_Contratos_Interfaz.md` para el formato de referencia.
 - ~~`Datos/shapenet/limpias/`~~
 - ~~`Datos/objaverse/limpias/`~~
 
-### 1. Preprocesado de Fantastic Breaks para E3
+### ~~1. Preprocesado de Fantastic Breaks para E3~~ ✅ HECHO (11 jul 2026)
 
-Tienes 150 pares roto/completo en `Datos/fantastic_breaks/`. Antes de que Rocío pueda entrenar el modelo de reparación necesita los datos en el formato correcto.
+~~Tienes 150 pares roto/completo en `Datos/fantastic_breaks/`.~~
 
-**Qué hacer:**
-1. Leer `model_c.ply` (completo) y `model_b_0.ply` (roto) de cada carpeta
-2. Submuestrear ambos a **2.048 puntos** (estándar en PoinTr/PCN)
-3. Guardar como pares `(roto_2048.npy, completo_2048.npy)` listos para entrenar
-4. Filtrar solo las clases vasija (00=mug, 02=bowl, 03=cup, 05=jar) → ~61 pares útiles
+**Resultado:** 61 pares vasija (mug+bowl+jar+cup) submuestreados a 2.048 puntos.
+122 archivos `.npy`, 3 MB → `Datos/fantastic_breaks/procesado/`
+Script: `Scripts/preprocesar_fantastic_breaks.py`
+Documentación para Rocío: `Documentacion/TFM_12_Datos_E3_Rocio.md`
 
-**Por qué 2.048:** los papers de shape completion (PoinTr, PCN, SnowFlakeNet) usan 2.048 puntos como input estándar. Si luego Rocío elige un modelo diferente se puede regenerar, pero 2.048 es la apuesta segura.
+**Corrección de mapping:** 03=jar (no cup), 05=cup (no jar) — verificado contra el paper.
+Si hace falta ampliar: `--clases vasijas,plate` (96 pares) o `--clases todas` (150 pares).
 
-### 2. Subir Fantastic Breaks procesado a Drive
-Una vez generados los pares `.npy` (serán ~15 MB en total), subirlos a la carpeta Drive del grupo en `fantastic_breaks_procesado/` para que Rocío pueda empezar a entrenar sin esperar a descargar los 8 GB raw.
+### ~~2. Subir Fantastic Breaks procesado a Drive~~ ✅ PENDIENTE DE SUBIR
+Subir `Datos/fantastic_breaks/procesado/` a Drive del grupo como `fantastic_breaks_procesado/`.
+Peso: 3 MB (no los 8 GB raw).
 
 > Fantastic Breaks raw (8 GB) NO hace falta subirlo a Drive — Rocío lo descarga con:
 > `python Scripts/descargar_fantastic_breaks.py`
