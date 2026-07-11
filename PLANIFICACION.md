@@ -41,9 +41,9 @@ Documentación para Rocío: `Documentacion/TFM_12_Datos_E3_Rocio.md`
 **Corrección de mapping:** 03=jar (no cup), 05=cup (no jar) — verificado contra el paper.
 Si hace falta ampliar: `--clases vasijas,plate` (96 pares) o `--clases todas` (150 pares).
 
-### ~~2. Subir Fantastic Breaks procesado a Drive~~ ✅ PENDIENTE DE SUBIR
-Subir `Datos/fantastic_breaks/procesado/` a Drive del grupo como `fantastic_breaks_procesado/`.
-Peso: 3 MB (no los 8 GB raw).
+### ~~2. Subir Fantastic Breaks procesado a Drive~~ ✅ HECHO (11 jul 2026)
+~~Subir `Datos/fantastic_breaks/procesado/` a Drive del grupo como `fantastic_breaks_procesado/`.~~
+Subido: 122 archivos .npy, 3 MB. Rocío puede empezar a entrenar.
 
 > Fantastic Breaks raw (8 GB) NO hace falta subirlo a Drive — Rocío lo descarga con:
 > `python Scripts/descargar_fantastic_breaks.py`
