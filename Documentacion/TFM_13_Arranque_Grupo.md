@@ -269,6 +269,108 @@ entrenar PCN o PoinTr sobre 61 pares. Si los experimentos se alargan mucho (más
 
 ---
 
+## Cómo leer los documentos y mantenerlos actualizados
+
+### El problema
+
+Tenemos 13 documentos en `Documentacion/`, una `PLANIFICACION.md` y una bitácora
+técnica. Si cada uno trabaja por su cuenta y nadie actualiza los docs, en dos semanas
+nadie sabe en qué estado está el proyecto.
+
+La solución no es que alguien se encargue de actualizar los docs a mano (eso no
+funciona). La solución es usar una IA que lea el repo y los actualice por ti.
+
+### La herramienta: Claude Code
+
+**Claude Code** es la misma IA con la que Raquel ha preparado todos estos documentos,
+pero funcionando como un asistente de terminal que vive dentro del repositorio.
+Cuando lo abres en la carpeta del proyecto, lee automáticamente todos los `.md` y
+tiene contexto completo de en qué punto está el TFM.
+
+**Instalación (5 minutos, una sola vez):**
+
+```bash
+# 1. Necesitas Node.js instalado (https://nodejs.org, versión LTS)
+# 2. Instala Claude Code
+npm install -g @anthropic-ai/claude-code
+
+# 3. Entra en la carpeta del repo clonado y ábrelo
+cd tfm-reconstruccion-3D
+claude
+```
+
+La primera vez te pedirá que inicies sesión con una cuenta de Anthropic (es gratis
+para uso básico en https://claude.ai).
+
+### Cómo usarlo en el día a día
+
+Una vez dentro, funciona como un chat pero con acceso a todos los archivos del repo.
+Ejemplos de lo que puedes pedirle:
+
+```
+"Lee PLANIFICACION.md y dime qué tengo que hacer yo (Rocío) esta semana"
+
+"He entrenado PCN por primera vez, loss final 0.12, Chamfer Distance 0.045.
+ Actualiza NOTAS_Y_HALLAZGOS.md con este resultado y marca en PLANIFICACION.md
+ que el primer entrenamiento baseline está hecho"
+
+"Explícame qué es la Chamfer Distance y por qué la usamos como métrica"
+
+"He encontrado un bug: el script de carga de datos da error cuando el .npy
+ tiene menos de 2048 puntos. Ayúdame a arreglarlo"
+```
+
+La IA lee los archivos, entiende el contexto del proyecto, actualiza la documentación
+y hace commit en Git por ti si se lo pides. No tienes que saber nada de Git para
+mantener los docs al día.
+
+### Flujo de trabajo recomendado por cada persona
+
+```
+1. git pull  (traer lo último del repo)
+2. Abre Claude Code en la carpeta:  claude
+3. Pídele que te diga tu estado actual: 
+       "Lee PLANIFICACION.md y dime por dónde voy yo y qué toca ahora"
+4. Trabaja en tu tarea (en Colab o en local)
+5. Cuando termines algo, vuelve a Claude Code y dile qué hiciste:
+       "He terminado X, actualiza la documentación y haz commit"
+6. Él edita los archivos, hace el commit y el push por ti
+```
+
+Así `PLANIFICACION.md` y `NOTAS_Y_HALLAZGOS.md` se actualizan solos a medida que
+avanza el grupo, sin que nadie tenga que "acordarse" de actualizar docs.
+
+### Alternativa sin instalar nada: Claude.ai Projects
+
+Si no quieres instalar Claude Code, puedes usar la web directamente:
+
+1. Entra en https://claude.ai y crea una cuenta (gratis)
+2. Crea un **Proyecto** (botón en la barra lateral)
+3. Sube estos archivos al proyecto (arrastrando):
+   - `PLANIFICACION.md`
+   - `NOTAS_Y_HALLAZGOS.md`
+   - `TFM_11_Contratos_Interfaz.md`
+   - El doc de tu etapa (`TFM_12_Datos_E3_Rocio.md` para Rocío, etc.)
+4. En el chat del proyecto puedes preguntar cualquier cosa sobre el TFM
+
+**Desventaja:** los archivos no se actualizan solos — tienes que resubirlos
+manualmente cuando cambien, y los cambios que pidas que haga la IA tienes que
+copiarlos a mano al repo. Claude Code lo hace todo automáticamente.
+
+### Qué archivos leer primero (por orden)
+
+Si acabas de clonarte el repo y no sabes por dónde empezar:
+
+1. **Este documento** (`TFM_13_Arranque_Grupo.md`) — visión general y tu tarea concreta
+2. **`PLANIFICACION.md`** — estado actual de todas las tareas, qué está hecho y qué no
+3. **`TFM_11_Contratos_Interfaz.md`** — el formato exacto de lo que tienes que entregar
+4. El documento específico de tu etapa (si existe)
+
+El resto de los documentos (`TFM_01` al `TFM_10`) son de referencia: explican
+conceptos, herramientas y decisiones tomadas. No hace falta leerlos todos de golpe.
+
+---
+
 ## Próximas reuniones y decisiones críticas
 
 Estas son las decisiones que están bloqueando el avance del grupo:
