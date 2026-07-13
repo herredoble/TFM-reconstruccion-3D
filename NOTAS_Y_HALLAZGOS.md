@@ -207,6 +207,31 @@ El README del GitHub y el ZIP no incluyen ningún fichero de documentación con 
 más volumen de entrenamiento. Plate comparte topología plana (rompe diferente a vasija).
 Statue añade variedad geométrica extrema. Ambas se activan con `--clases vasijas,plate,statue`.
 
+### H12 — PCN baseline: loss mejora pero geometría no converge con 61 pares
+*(13 jul 2026, Rocío)*
+
+Primer entrenamiento de PCN (num_dense=2048, latent_dim=1024, grid_size=4, Adam lr=0.0001,
+loss L1 Chamfer Distance) sobre `fantastic_breaks_procesado/` (53 train / 8 val).
+
+**Cuantitativo:** loss train 0.595 → 0.137 en 170 épocas (-77%). Loss val: 0.216, sin
+overfitting evidente entre train y validación.
+
+**Cualitativo:** las predicciones (tanto coarse como fine) no reproducen una superficie de
+vasija reconocible — aparece una distribución de puntos dispersa, aproximadamente regular
+en rejilla, en vez de la forma real del ground truth.
+
+**Interpretación:** con solo 53 ejemplos de entrenamiento, el modelo parece encontrar una
+solución degenerada que minimiza Chamfer Distance ocupando el volumen aproximado sin
+capturar la superficie real — la métrica lo permite porque solo penaliza distancia al punto
+más cercano, no coherencia estructural.
+
+**Conclusión:** el pipeline dato→entrenamiento→evaluación→visualización queda validado de
+extremo a extremo. La calidad geométrica requiere más datos — confirma empíricamente la
+necesidad de la augmentación sintética con ShapeNet (2.170 modelos) prevista para agosto.
+
+Checkpoints guardados en Drive: `checkpoints_pcn/` (pcn_epoca5-20.pt, pcn_epoca_extra10-150.pt,
+pcn_final.pt).
+
 ### Hecho
 - [x] 246 modelos .glb de Objaverse descargados → `Datos/objaverse/raw/` — `Scripts/descargar_tazas.py`
 - [x] 197 modelos Objaverse normalizados (.ply) → `Datos/objaverse/limpias/` — `Scripts/filtrar_normalizar_tazas.py`

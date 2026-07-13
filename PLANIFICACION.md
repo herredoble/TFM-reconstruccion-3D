@@ -80,6 +80,22 @@ Esta decisión desbloquea la implementación de Almu.
 | **Raquel** | Datos para E3 | Script de preprocesado de Fantastic Breaks: submuestreo a 2.048 puntos, generar pares (roto, completo) listos para entrenar |
 | **Rocío** | Arquitectura del modelo de reparación | Research spike: comparar PoinTr, SnowFlakeNet, PCN. Elegir el baseline. Primer entrenamiento en Fantastic Breaks |
 
+### ~~Primer entrenamiento PCN en Fantastic Breaks~~ ✅ HECHO (13 jul 2026)
+
+Modelo PCN entrenado con `fantastic_breaks_procesado/` (53 train / 8 val, 2.048 puntos),
+170 épocas totales. Loss L1 Chamfer Distance: 0.595 → 0.137 (train), 0.216 (val).
+
+**Pipeline completo validado:** datos → entrenamiento → evaluación → visualización funciona
+de extremo a extremo sobre el contrato E2→E3.
+
+**Hallazgo:** pese a la mejora de loss, las predicciones no muestran geometría reconocible
+(distribución tipo rejilla, no superficie de vasija) — el dataset actual (61 pares) es
+insuficiente para que PCN aprenda forma real. Confirma la necesidad de la augmentación
+sintética con ShapeNet.
+
+**Siguiente paso de Rocío:** esperar/generar pares sintéticos ShapeNet ampliados antes de
+reentrenar; coordinar con Luis métricas estandarizadas (Chamfer Distance, F-Score).
+
 ---
 
 ## Cronograma
