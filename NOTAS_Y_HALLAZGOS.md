@@ -68,9 +68,16 @@ Para ir más allá (piezas mecánicas, componentes CAD) el referente es el **ABC
 E2 (reconstrucción): **Álvaro** (arquitectura/decisión), **Almu** (implementación E1+E2), **Luis** (métricas + integración E2→E3).
 E3 (reparación): **Raquel** (datos y preprocesado), **Rocío** (arquitectura del modelo).
 
-### D8 — Decisión pendiente: método E2 (NeRF clásico vs feed-forward)
-*(pendiente — Álvaro decide esta semana)*
-NeRF clásico (nerfacto): no necesita entrenamiento previo, funciona con pocas vistas, pero tarda minutos por objeto en inferencia. Feed-forward (Zero123, One-2-3-45): inferencia rápida, pero requiere más datos de entrenamiento. Esta decisión desbloquea la implementación de Almu. Ver `PLANIFICACION.md`.
+### D8 — Método E2: Pix2Vox elegido
+*(25 jul 2026 — Álvaro)*
+**Pix2Vox**: reconstrucción 3D multi-vista basada en voxels. Descartados nerfacto y Zero123.
+
+Configuración usada:
+- Formato datos: `.binvox` (voxelización de todos los modelos de todas las categorías)
+- Imágenes: 20 vistas por objeto, mismos ángulos fijos para todos los modelos
+- Carpetas: `Datos_E2/Datos_E2_voxel` (voxels) · `Datos_E2/IMG E2` (imágenes)
+
+**Impacto en el contrato E2→E3:** la salida de E2 es ahora un voxel grid, no una nube de puntos `.npy`. Hay que definir la conversión voxel → nube de puntos (marching cubes + muestreo, o directamente de la malla voxelizada). Luis coordina. Ver `Documentacion/TFM_11_Contratos_Interfaz.md` para actualizar el contrato.
 
 ### D6 — ShapeNet: usar mirror de Hugging Face
 *(26 jun 2026)*
@@ -206,6 +213,46 @@ El README del GitHub y el ZIP no incluyen ningún fichero de documentación con 
 **Plate (01, 35 pares) y statue (09, 30 pares) son las candidatas opcionales** si se necesita
 más volumen de entrenamiento. Plate comparte topología plana (rompe diferente a vasija).
 Statue añade variedad geométrica extrema. Ambas se activan con `--clases vasijas,plate,statue`.
+
+### H12 — Dataset sintético de roturas: 2.367 pares generados
+*(3 ago 2026 — Raquel)*
+
+Generados 2.367 pares sintéticos (roto, completo) a partir de ShapeNet (2.170 modelos) + Objaverse (197 modelos).
+Técnica: corte por plano aleatorio, eliminando entre 25% y 75% de puntos por par.
+Resultado: 4.602 archivos .npy, 113.7 MB → `Datos/sintetico/roturas/`
+Script: `Scripts/generar_roturas_sinteticas.py`
+0 errores en 2.367 modelos.
+
+**Impacto para E3:** Rocío pasa de tener 61 pares reales (Fantastic Breaks) a **2.428 pares en total**
+(2.367 sintéticos + 61 reales). Los sintéticos y los reales están en carpetas separadas para poder
+entrenar con cada conjunto por separado o combinados.
+
+| Fuente | Pares | Tipo | Carpeta |
+|--------|-------|------|---------|
+| Fantastic Breaks | 61 | Reales (escaneos) | `Datos/fantastic_breaks/procesado/` |
+| ShapeNet + Objaverse | 2.367 | Sintéticos (corte plano) | `Datos/sintetico/roturas/` |
+| **Total** | **2.428** | | |
+
+---
+
+### H13 — E3/dataset.py: data loader PyTorch listo y probado
+*(4 ago 2026 — Raquel)*
+
+Creado `E3/dataset.py` con tres componentes:
+- `construir_pares(carpetas)` — escanea directorios buscando pares `*_completo.npy` / `*_roto.npy`
+- `ShapeCompletionDataset` — clase `torch.utils.data.Dataset`; augmentación: rotación aleatoria en Z + jitter σ=0.01
+- `construir_dataloaders(carpetas, batch_size, split, augmentar)` — devuelve (train_loader, val_loader, test_loader)
+
+Probado en local. Resultado del test:
+- 2.362 pares encontrados (Fantastic Breaks + sintéticos)
+- Split 80/10/10 → train 1.889 / val 236 / test 237
+- Batch shape: `torch.Size([32, 2048, 3])`, dtype float32 ✓
+- 60 batches por época en train
+
+**Siguiente paso inmediato:** `E3/train.py` — script de entrenamiento con modelo PCN,
+pérdida Chamfer Distance y bucle de entrenamiento con checkpoints.
+
+---
 
 ### Hecho
 - [x] 246 modelos .glb de Objaverse descargados → `Datos/objaverse/raw/` — `Scripts/descargar_tazas.py`

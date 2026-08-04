@@ -50,16 +50,19 @@ Subido: 122 archivos .npy, 3 MB. Rocío puede empezar a entrenar.
 
 ---
 
-## Decisión pendiente — E2: NeRF vs feed-forward
+## ~~Decisión pendiente — E2: NeRF vs feed-forward~~ ✅ DECIDIDO (25 jul 2026)
 
-**Álvaro hace el research spike esta semana.** Decisión antes del fin de semana.
+**Método elegido: Pix2Vox** (multi-vista → voxel grid en formato `.binvox`).
 
-| Opción | Ventaja | Desventaja |
-|--------|---------|------------|
-| NeRF clásico (nerfacto) | No necesita entrenamiento previo, funciona con pocas vistas | Tarda minutos por objeto en inferencia |
-| Feed-forward (Zero123, One-2-3-45) | Inferencia rápida | Requiere más datos de entrenamiento |
+Álvaro descartó nerfacto y Zero123. Pix2Vox reconstruye una malla voxelizada a partir de N imágenes 2D desde ángulos fijos. Formato de datos: `.binvox` (voxels). Imágenes: 20 vistas por objeto, mismos ángulos para todos.
 
-Esta decisión desbloquea la implementación de Almu.
+Estado a 25 jul 2026:
+- [x] Voxelización de todas las categorías — `Datos_E2/Datos_E2_voxel`
+- [x] Generación de imágenes en curso (20 vistas/objeto) — `Datos_E2/IMG E2`
+- [ ] Entrenamiento Pix2Vox — siguiente paso de Álvaro
+- [ ] Validación con tazas rotas
+
+⚠️ **Impacto en contrato E2→E3:** El plan original era que E2 entregase `.npy (2048,3)` (nube de puntos). Con Pix2Vox, E2 entrega un **voxel grid**. Hay que acordar la conversión voxel → nube de puntos antes de la integración. Luis debe coordinar esto.
 
 ---
 
@@ -77,7 +80,7 @@ Esta decisión desbloquea la implementación de Almu.
 
 | Persona | Responsabilidad | Primera tarea |
 |---------|----------------|---------------|
-| **Raquel** | Datos para E3 | Script de preprocesado de Fantastic Breaks: submuestreo a 2.048 puntos, generar pares (roto, completo) listos para entrenar |
+| **Raquel** | Datos + pipeline E3 | ~~Fantastic Breaks preprocesado~~ ✅ · ~~Generación sintética de roturas~~ ✅ · ~~Data loader PyTorch~~ ✅ → **Siguiente: `E3/train.py` (PCN + Chamfer Distance)** |
 | **Rocío** | Arquitectura del modelo de reparación | Research spike: comparar PoinTr, SnowFlakeNet, PCN. Elegir el baseline. Primer entrenamiento en Fantastic Breaks |
 
 ---
