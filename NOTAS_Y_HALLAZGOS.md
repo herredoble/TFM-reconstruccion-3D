@@ -254,6 +254,34 @@ pérdida Chamfer Distance y bucle de entrenamiento con checkpoints.
 
 ---
 
+### H14 — PCN baseline entrenado: val loss 0.1193 en 100 épocas
+*(5 ago 2026 — Raquel)*
+
+Primer entrenamiento completo del modelo PCN en Google Colab (T4 GPU).
+
+**Configuración:**
+- Datos: 2.362 pares (61 Fantastic Breaks reales + 2.301 sintéticos ShapeNet/Objaverse)
+- Split: 1.889 train / 236 val / 237 test
+- Batch size: 64, épocas: 100, LR inicial: 1e-4, StepLR ×0.5 cada 40 épocas
+- Duración: ~55 minutos en T4 GPU
+
+**Resultados:**
+| Época | Train loss | Val loss | LR |
+|-------|-----------|----------|-----|
+| 1 | 0.310 | 0.360 | 1e-4 |
+| 40 | 0.137 | 0.138 | 5e-5 (decay) |
+| 80 | 0.121 | 0.125 | 2.5e-5 (decay) |
+| **97 (mejor)** | **0.118** | **0.1193** | 2.5e-5 |
+| 100 | 0.117 | 0.120 | 2.5e-5 |
+
+**Interpretación:** la pérdida es CD-L1 (distancia euclídea media al vecino más cercano, escala esfera unidad radio=1). Un valor de 0.119 significa que los puntos predichos están a ~0.12 unidades de media de los puntos reales. La diferencia train/val es mínima (~0.001) — sin overfitting.
+
+**Checkpoint:** `Datos_E2_E3/checkpoints_pcn/best.pt` en Drive compartido (época 97).
+
+**Siguiente paso:** `E3/evaluate.py` — cargar best.pt, pasar el test set y visualizar ejemplos.
+
+---
+
 ### Hecho
 - [x] 246 modelos .glb de Objaverse descargados → `Datos/objaverse/raw/` — `Scripts/descargar_tazas.py`
 - [x] 197 modelos Objaverse normalizados (.ply) → `Datos/objaverse/limpias/` — `Scripts/filtrar_normalizar_tazas.py`
