@@ -198,22 +198,21 @@ def cargar_checkpoint(ruta: Path, model, optimizer, device):
 # BUCLE DE ENTRENAMIENTO
 # ---------------------------------------------------------------------------
 
-def train_epoch(model, loader, optimizer, device) -> float:
+def train_epoch(model, loader, optimizer, device, w_coarse: float = 0.5) -> float:
     model.train()
     total = 0.0
     for roto, completo in loader:
         roto, completo = roto.to(device), completo.to(device)
         optimizer.zero_grad()
         coarse, fine = model(roto)
-        # Peso 0.5 en coarse: la reconstrucción fina tiene más importancia
-        loss = chamfer_distance(fine, completo) + 0.5 * chamfer_distance(coarse, completo)
+        loss = chamfer_distance(fine, completo) + w_coarse * chamfer_distance(coarse, completo)
         loss.backward()
         optimizer.step()
         total += loss.item()
     return total / len(loader)
 
 
-def val_epoch(model, loader, device) -> float:
+def val_epoch(model, loader, device, w_coarse: float = 0.5) -> float:
     model.eval()
     total = 0.0
     with torch.no_grad():
@@ -221,7 +220,7 @@ def val_epoch(model, loader, device) -> float:
             roto, completo = roto.to(device), completo.to(device)
             coarse, fine = model(roto)
             total += (chamfer_distance(fine, completo)
-                      + 0.5 * chamfer_distance(coarse, completo)).item()
+                      + w_coarse * chamfer_distance(coarse, completo)).item()
     return total / len(loader)
 
 
@@ -250,6 +249,8 @@ def main():
                         help="Guardar checkpoint periódico cada N épocas")
     parser.add_argument("--resume",       type=str,   default=None,
                         help="Checkpoint desde el que continuar (ej. E3/checkpoints/best.pt)")
+    parser.add_argument("--w_coarse",     type=float, default=0.5,
+                        help="Peso de la pérdida coarse (default=0.5; usar 1.0 en v2 para mejorar estructura)")
     parser.add_argument("--device",       type=str,   default=None,
                         help="'cuda' o 'cpu' (None = autodetect)")
     args = parser.parse_args()
@@ -301,8 +302,8 @@ def main():
 
     for epoch in range(epoch_start + 1, args.epochs + 1):
         t0 = time.time()
-        loss_train = train_epoch(model, train_loader, optimizer, device)
-        loss_val   = val_epoch(model, val_loader, device)
+        loss_train = train_epoch(model, train_loader, optimizer, device, args.w_coarse)
+        loss_val   = val_epoch(model, val_loader, device, args.w_coarse)
         scheduler.step()
         elapsed = time.time() - t0
 
