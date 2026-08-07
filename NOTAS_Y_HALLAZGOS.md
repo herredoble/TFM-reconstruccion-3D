@@ -280,6 +280,33 @@ Primer entrenamiento completo del modelo PCN en Google Colab (T4 GPU).
 
 **Siguiente paso:** `E3/evaluate.py` — cargar best.pt, pasar el test set y visualizar ejemplos.
 
+### H15 — Evaluación E3 baseline: CD=0.077, F-Score=0.019 — predicciones sin estructura
+*(7 ago 2026 — Raquel)*
+
+Evaluación del checkpoint `best.pt` (época 97) sobre el test set (237 muestras).
+
+**Resultados:**
+
+| Métrica | Valor | Referencia (PCN en ShapeNet) |
+|---------|-------|------------------------------|
+| CD-L1 media | 0.0766 | ~0.005–0.020 |
+| CD-L1 mediana | 0.0732 | — |
+| CD-L1 std | 0.0283 | — |
+| F-Score @ τ=0.01 (media) | 0.019 | ~0.40–0.60 |
+
+Archivos generados: `E3/resultados/metricas.csv`, `E3/resultados/resumen.txt`, 8 figuras PNG (4 mejores + 4 peores por CD).
+
+**Diagnóstico visual:** las predicciones son nubes difusas sin forma reconocible — el modelo aprendió *dónde* están los puntos pero no *cómo* estructurarlos. El mejor caso (CD=0.033) tiene cierta forma; el peor (CD=0.182, bowl fragmentado) falla completamente.
+
+**Causas probables:**
+1. Pocas épocas (100) — PCN necesita 250–400 épocas para converger
+2. LR decayó demasiado rápido (×0.5 en épocas 40 y 80 → 2.5e-5 en época 97)
+3. Peso coarse bajo (0.5) — el decoder coarse no aprende forma suficientemente buena, lo que arrastra al fine
+
+**Interpretación para la memoria:** el pipeline E3 funciona de extremo a extremo. Los números son los de un primer baseline; no son comparables directamente con papers que usan CD-L2 y benchmarks distintos. El modelo v2 (más épocas, mejor schedule) debería mejorar sustancialmente.
+
+**Acción:** iniciar entrenamiento v2 con `--resume best.pt --epochs 300 --w_coarse 1.0`. Rocío puede también probar PoinTr como alternativa con mayor capacidad.
+
 ---
 
 ### Hecho
