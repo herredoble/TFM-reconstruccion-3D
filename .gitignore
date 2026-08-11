@@ -2,6 +2,18 @@
 Datos/
 Modelos_generados/
 
+# --- Modelos entrenados y resultados (van en Drive) ---
+E3/checkpoints/
+*.zip
+
+# --- Notebooks ejecutados y copias de Colab ---
+*ejecutado*.ipynb
+* (2).ipynb
+* (3).ipynb
+
+# --- Capturas y figuras locales ---
+Figuras/capturas_drive/
+
 # --- Archivos 3D grandes ---
 *.glb
 *.ply
