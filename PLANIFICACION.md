@@ -80,7 +80,7 @@ Estado a 25 jul 2026:
 
 | Persona | Responsabilidad | Primera tarea |
 |---------|----------------|---------------|
-| **Raquel** | Datos + pipeline E3 | ~~Fantastic Breaks preprocesado~~ ✅ · ~~Generación sintética de roturas~~ ✅ · ~~Data loader PyTorch~~ ✅ · ~~`E3/train.py` PCN entrenado~~ ✅ (val loss 0.1193) · ~~`E3/evaluate.py`~~ ✅ (CD=0.077, F-Score=0.019, 8 figuras PNG) → **Pipeline E3 completo. Siguiente: lanzar train v2 en Colab (--resume, 300 épocas) y pasar best_v2.pt a Rocío** |
+| **Raquel** | Datos + pipeline E3 | ~~Fantastic Breaks preprocesado~~ ✅ · ~~Generación sintética de roturas~~ ✅ · ~~Data loader PyTorch~~ ✅ · ~~`E3/train.py` PCN v1~~ ✅ (CD=0.077) · ~~`E3/evaluate.py`~~ ✅ · ~~**PCN v3 entrenado**~~ ✅ (CD=0.0665, F-Score=0.024, época 347/400, A100) → **Pipeline E3 completo con v3. Pasar best.pt a Rocío para comparar con PoinTr.** |
 | **Rocío** | Arquitectura del modelo de reparación | Research spike: comparar PoinTr, SnowFlakeNet, PCN. Elegir el baseline. Primer entrenamiento en Fantastic Breaks |
 
 ---
