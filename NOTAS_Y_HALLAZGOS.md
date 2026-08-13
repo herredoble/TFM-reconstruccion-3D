@@ -280,6 +280,30 @@ Primer entrenamiento completo del modelo PCN en Google Colab (T4 GPU).
 
 **Siguiente paso:** `E3/evaluate.py` — cargar best.pt, pasar el test set y visualizar ejemplos.
 
+### H16 — E3 v3: CD=0.0665, F-Score=0.024 — mejora clara sobre baseline
+*(13 ago 2026 — Raquel)*
+
+Entrenamiento desde cero con hiperparámetros corregidos en A100 GPU (~40 min).
+
+**Configuración v3:**
+- Épocas: 400 (mejor en época 347) · LR: 1e-4 · lr_decay: 100 · batch: 64 · w_coarse: 0.5
+
+**Resultados vs baseline v1:**
+
+| Métrica | v1 (época 97) | v3 (época 347) | Mejora |
+|---------|--------------|----------------|--------|
+| CD media | 0.0766 | **0.0665** | ↓ 13% |
+| CD mediana | 0.0732 | **0.0628** | ↓ 14% |
+| CD std | 0.0283 | **0.0217** | ↓ 23% |
+| F-Score media | 0.0193 | **0.0243** | ↑ 26% |
+
+Mejora en todas las métricas. La std más baja indica predicciones más consistentes.
+El modelo aún lejos de los papers (~CD 0.005–0.020) por limitaciones del PCN y roturas sintéticas simples.
+
+**Checkpoints en Drive:** `Datos_E2_E3/E3/Raquel/modelos/v3_pcn/best.pt`
+**Resultados en Drive:** `Datos_E2_E3/E3/Raquel/resultados/v3_pcn/`
+**Siguiente paso:** pasar best.pt a Rocío para que compare con PoinTr/SnowFlakeNet.
+
 ### H15 — Evaluación E3 baseline: CD=0.077, F-Score=0.019 — predicciones sin estructura
 *(7 ago 2026 — Raquel)*
 
