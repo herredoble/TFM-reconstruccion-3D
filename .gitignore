@@ -2,6 +2,10 @@
 Datos/
 Modelos_generados/
 
+# --- Mirror local de Drive (estructura idéntica a Datos_E2_E3/E3/ en Drive) ---
+# Descarga manual desde Drive. Ruta: Datos/E3_drive/
+# Estructura: modelos/v1_pcn/ · modelos/v2_pcn/ · resultados/v1_pcn/ etc.
+
 # --- Modelos entrenados y resultados (van en Drive) ---
 E3/checkpoints/
 *.zip
