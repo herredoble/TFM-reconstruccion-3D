@@ -121,7 +121,7 @@ def cargar_componente_mayor(ruta: Path) -> np.ndarray | None:
 # Descarta formas que no parecen vasijas 3D (planas, lineales, degeneradas).
 # ---------------------------------------------------------------------------
 
-def es_vasija_valida(pts_norm: np.ndarray, umbral_pca: float = 0.01) -> tuple[bool, str]:
+def es_vasija_valida(pts_norm: np.ndarray, umbral_pca: float = 0.005) -> tuple[bool, str]:
     """Comprueba si una nube de puntos normalizada tiene forma de vasija 3D.
 
     Usa PCA sobre los vértices: una vasija ocupa los tres ejes del espacio de
@@ -130,7 +130,7 @@ def es_vasija_valida(pts_norm: np.ndarray, umbral_pca: float = 0.01) -> tuple[bo
 
     umbral_pca: ratio mínimo eigenvalor_min/eigenvalor_max para considerar la
                 forma como tridimensionalmente válida.
-                0.01 es conservador (descarta solo las formas muy degeneradas).
+                0.005 descarta formas muy degeneradas sin rechazar vasijas con un eje corto.
     """
     if len(pts_norm) < 100:
         return False, "muy pocos vértices"
@@ -440,8 +440,8 @@ Ejemplos:
         help="Máximo de puntos a eliminar en la rotura (defecto: 0.50)")
     ap.add_argument("--rugosidad",  type=float, default=0.05,
         help="Desviación estándar del ruido en la superficie de corte (defecto: 0.05)")
-    ap.add_argument("--umbral_pca", type=float, default=0.01,
-        help="Ratio PCA mínimo para aceptar una forma como vasija (defecto: 0.01)")
+    ap.add_argument("--umbral_pca", type=float, default=0.005,
+        help="Ratio PCA mínimo para aceptar una forma como vasija (defecto: 0.005)")
     ap.add_argument(
         "--pesos_modo", nargs=3, type=float, default=_PESOS_DEFAULT,
         metavar=("PLANO", "CHIP", "CUNA"),
