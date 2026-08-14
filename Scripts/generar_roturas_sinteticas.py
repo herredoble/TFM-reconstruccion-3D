@@ -394,6 +394,11 @@ def procesar_dataset(
         ruta_completo = destino / f"{prefijo}_completo.npy"
         ruta_roto     = destino / f"{prefijo}_roto.npy"
 
+        # Checkpoint: saltar si el par ya existe (permite relanzar sin repetir trabajo)
+        if not dry_run and ruta_completo.exists() and ruta_roto.exists():
+            ok += 1
+            continue
+
         estado = "[DRY]" if dry_run else "[OK] "
         pct = 100 * (1 - len(pts_roto_raw) / len(pts_norm))
         print(f"  {estado} [{modo:<5}] {ruta.stem[:37]:<37}  raw:{len(pts_raw):>7,}  "
