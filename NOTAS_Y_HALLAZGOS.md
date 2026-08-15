@@ -503,12 +503,12 @@ real en cerámica que la oclusión por viewpoint.
 
 | | v1 (plano) | v2 (mezcla) | PoinTr (viewpoint) |
 |--|-----------|-------------|-------------------|
-| Modelos entrenados | PCN v1, PCN v3 | **PCN v4** ✅ | — |
+| Modelos entrenados | PCN v1, PCN v3 | **PCN v4, PCN v5** ✅ | — |
 | Datos | `sintetico/roturas/` (2.367 pares) | `sintetico_roturas_v2/` (**2.299 pares** ✅) | — |
 | Realismo para vasijas | Medio | **Alto** | Bajo |
 | Complejidad impl. | Baja | Media | Baja |
 | Estándar en papers | Sí (PCN, FoldingNet) | No (mejora propia) | Sí (PoinTr, SnowFlakeNet) |
-| Resultado PCN | CD=0.0665, F=0.024 | **CD=0.0641, F=0.0236** ✅ | — |
+| Resultado PCN | CD=0.0665, F=0.024 | **CD=0.0630, F=0.0257** ✅ (v5 con fix centroide) | — |
 
 ---
 
@@ -557,7 +557,7 @@ Entrenamiento completado en Google Colab A100 (~2.5 horas). Best epoch: **480/50
 ---
 
 ### H19 — Desalineación de centroide entre roto y completo: causa confirmada del colapso del modelo
-*(15 ago 2026 — Raquel)*
+*(15 ago 2026 — Raquel · fix implementado en v5)*
 
 **Observación:** Al revisar las figuras de evaluación PCN v3/v4, en los peores casos la nube rota (azul) aparece claramente desplazada respecto al GT completo (verde). El modelo predice en esos casos una **placa plana horizontal** — síntoma de colapso (no sabe qué predecir).
 
@@ -574,9 +574,7 @@ Ejemplo del mejor caso (muestra 37, v3):
 
 **El patrón es inequívoco:** a mayor desalineación de centroide, peor predicción. Es la causa principal de los outliers extremos (CD=0.229 en v4).
 
-**Fix propuesto en `E3/dataset.py` (v5):**
-
-Centrar la nube rota en su propio centroide y desplazar el GT por la misma cantidad:
+**Fix implementado en `E3/dataset.py` (`CENTRAR_EN_ROTO=True`):**
 
 ```python
 # En __getitem__, tras cargar roto y completo:
@@ -591,12 +589,57 @@ completo  = completo - roto_mean     # desplazar GT al mismo frame
 - En inferencia: centrar el fragmento roto real → predecir → la salida ya está en el frame correcto
 - Es el preprocesado estándar en FoldingNet, GRNet y otras implementaciones de shape completion
 
-**Impacto esperado en v5:**
-- Reducción significativa de la varianza (std CD 0.028 → ~0.018)
-- Mejora de los peores casos (CD peor 0.229 → ~0.15)
-- Mejora media estimada: 10-20% respecto a v4
+**Impacto real en v5 (ver H20):**
+- F-Score +8.9% (mejora más significativa — punto a punto más precisos)
+- CD media −1.8% (mejora más modesta de lo esperado)
+- std −6.4% (reducción de varianza ✓)
+- Los casos patológicos más extremos persisten (muestra 22, CD=0.222)
 
-**Estado:** pendiente de implementar en `E3/dataset.py` + re-entrenar como PCN v5.
+**Estado:** ✅ implementado en `E3/dataset.py` · re-entrenado como PCN v5.
+
+---
+
+### H20 — PCN v5: resultados con fix de centroide
+*(15 ago 2026 — Raquel)*
+
+Entrenamiento completado en Google Colab A100 (~2.5 horas). Best epoch: **445/500**.
+
+**Configuración v5:**
+- **Cambio clave:** `CENTRAR_EN_ROTO=True` en `dataset.py` (fix H19)
+- Datos: mismos que v4 — `sintetico_roturas_v2` (2.299 pares) + Fantastic Breaks (61) = 2.360 total
+- GPU: NVIDIA A100-SXM4-40GB (42.4 GB VRAM)
+- Épocas: 500 · LR: 1e-4 · lr_decay: 100 · batch: 64 · w_coarse: 1.0
+
+**Resultados — comparativa v3 / v4 / v5:**
+
+| Métrica | v3 | v4 | v5 | Δ v4→v5 | Δ v3→v5 |
+|---------|----|----|----|----|-----|
+| CD-L1 media | 0.066536 | 0.064096 | **0.062954** | −1.8% | −5.4% |
+| CD-L1 mediana | 0.062840 | 0.056996 | **0.057170** | +0.3% | −9.1% |
+| CD-L1 std | 0.021672 | 0.028339 | **0.026518** | −6.4% ✓ | +22% |
+| CD-L1 mejor | 0.028372 | 0.027344 | 0.027497 | +0.6% | −3.1% |
+| CD-L1 peor | 0.166181 | 0.229480 | 0.222242 | −3.2% | +34% |
+| F-Score media | 0.0243 | 0.0236 | **0.0257** | +8.9% ✓✓ | +5.8% |
+| Best epoch | 347/400 | 480/500 | **445/500** | — | — |
+
+**Análisis:**
+
+1. **F-Score +8.9%: el logro más importante de v5.** El fix de centroide permite que el modelo prediga puntos en las posiciones correctas, no en un promedio desplazado. Esta métrica mide precisión punto a punto y es más sensible al desplazamiento que CD.
+
+2. **CD media sigue la tendencia (−1.8%).** La mejora es más modesta que la esperada (se estimó −10-20%). El motivo es que los casos patológicos más extremos no desaparecen: muestra 22 sigue con CD=0.222. Estos casos corresponden probablemente a modos chip+cuña con roturas muy extremas donde el fragmento tiene muy pocos puntos y forma irregular.
+
+3. **Varianza se reduce (std −6.4% vs v4).** La distribución de errores se estrecha ligeramente, confirmando que el centroide desalineado era fuente de varianza. Aún está por encima de v3 (0.021) porque los datos v2 tienen más diversidad de rotura.
+
+4. **Convergencia más rápida (445 vs 480 épocas).** El modelo encuentra un mínimo antes, lo que sugiere que el fix simplifica el problema de aprendizaje.
+
+5. **Casos patológicos persisten.** El peor caso (CD=0.222, muestra 22) sigue siendo patológico. Probablemente corresponde a roturas extremas (>45% de puntos eliminados, modo chip) donde el fragmento tiene muy pocos puntos informativos. Posibles mejoras futuras: limitar aún más el % de rotura, o aumentar el n_puntos del fragmento.
+
+**Conclusión:** v5 es el mejor modelo PCN en F-Score y CD media. La centración de centroide ayuda, especialmente en precisión de posición (F-Score). La arquitectura PCN parece estar cerca de su límite para este dataset — PoinTr (transformer) es el siguiente paso natural.
+
+**Archivos:**
+- Notebook: `E3/colab_entrenar_pcn_v5.ipynb`
+- Modelo: Drive → `Datos_E2_E3/E3/Raquel/modelos/v5_pcn/best.pt`
+- Resultados: Drive → `Datos_E2_E3/E3/Raquel/resultados/v5_pcn/`
 
 ---
 
@@ -614,6 +657,7 @@ completo  = completo - roto_mean     # desplazar GT al mismo frame
 - [x] Decisión de dataset: super-categoría vasijas (mug+bowl+bottle+jar+can)
 - [x] **Roturas sintéticas v2 generadas** — 2.299 pares (plano+chip+cuña, filtro PCA) → `sintetico_roturas_v2/` en Drive (15 ago 2026) — `E3/generar_roturas_standalone.ipynb`
 - [x] **PCN v4 entrenado** — CD=0.0641, F=0.0236, época 480/500, A100 (15 ago 2026) — `E3/colab_entrenar_pcn_v4.ipynb`
+- [x] **PCN v5 entrenado** — CD=0.0630, F=0.0257, época 445/500, A100 (15 ago 2026) — fix centroide (H19) — `E3/colab_entrenar_pcn_v5.ipynb`
 - [x] `Scripts/descargar_co3d.py` creado
 - [x] Docs de organización generados: TFM_09, TFM_10, TFM_11
 
