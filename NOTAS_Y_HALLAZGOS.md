@@ -333,6 +333,185 @@ Archivos generados: `E3/resultados/metricas.csv`, `E3/resultados/resumen.txt`, 8
 
 ---
 
+### H17 — Comparativa de estrategias de generación de roturas sintéticas
+*(14 ago 2026 — Raquel)*
+
+---
+
+#### ¿Por qué necesitamos generar roturas sintéticas?
+
+Los modelos de shape completion (PCN, PoinTr, SnowFlakeNet) aprenden a reconstruir
+una nube de puntos completa a partir de una parcial. Para entrenar bien necesitan miles
+de pares `(roto → completo)`. Fantastic Breaks solo aporta 61 pares reales de vasijas;
+el resto los generamos artificialmente a partir de modelos 3D completos de ShapeNet y Objaverse.
+
+La técnica que usamos para simular la rotura determina directamente qué aprende el modelo:
+si las roturas son poco realistas, el modelo aprende patrones que no existen en la realidad.
+
+---
+
+#### Estrategia 1 — Corte por plano (v1, la que usamos hasta ahora)
+*Script: `Scripts/generar_roturas_sinteticas.py` — usada en PCN v1 y v3*
+*Datos: `Datos/sintetico/roturas/` — 2.367 pares*
+
+**Cómo funciona:**
+1. Se elige una dirección aleatoria en el espacio 3D.
+2. Cada punto del modelo se proyecta sobre esa dirección → da un número.
+3. Se elimina la mitad "por encima" del plano: los puntos con proyección más alta.
+4. El porcentaje eliminado es aleatorio entre el **25% y el 75%**.
+5. La superficie de corte es un plano matemáticamente perfecto.
+
+```
+       plano de corte
+            │
+  [queda]   │   [se elimina]
+    ○ ○ ○   │   ○ ○
+    ○ ○     │     ○ ○
+    ○ ○ ○   │   ○
+```
+
+**Por qué es válida:** es la técnica estándar en los papers del campo (PCN, FoldingNet, GRNet).
+Es simple, reproducible y cubre bien el caso "la vasija se partió en dos trozos grandes".
+
+**Problemas detectados (14 ago 2026):**
+1. **Roturas demasiado grandes**: el 75% máximo genera nubes casi vacías, poco realistas.
+   Una vasija rota de verdad rara vez pierde más del 50% del material.
+2. **Formas extrañas en los datos fuente**: algunos `.ply` tienen múltiples componentes
+   desconectados (asa suelta, artefactos flotantes). trimesh los concatenaba, generando
+   nubes sin forma de vasija. El filtro de la v1 era solo "¿tiene más de 10 puntos?" → insuficiente.
+3. **Superficie de corte irreal**: el plano perfecto no existe en cerámica rota.
+   Una rotura real tiene una superficie rugosa e irregular.
+
+---
+
+#### Estrategia 2 — Mezcla de modos con filtro geométrico (v2, la que usamos ahora)
+*Script: `Scripts/generar_roturas_sinteticas.py` (actualizado 14 ago 2026)*
+*Notebook: `E3/generar_roturas_standalone.ipynb` — ejecutado 15 ago 2026 en Colab A100 High RAM*
+*Datos: `Datos_E2_E3/General/sintetico_roturas_v2/` en Drive — **2.299 pares generados** ✅*
+
+**Cambios respecto a v1:**
+
+| Aspecto | v1 | v2 |
+|---------|----|----|
+| Lector de .ply | trimesh (carga mesh completo: vértices+caras+topología → 300-500 MB/modelo) | **plyfile** (solo vértices x,y,z → ~2 MB/modelo) |
+| Carga de componentes | Concatena todos los componentes del mesh | Todos los vértices (archivos ya limpios) |
+| Filtro geométrico | Ninguno (solo "≥10 puntos") | PCA eigenvalores: descarta formas planas/lineales |
+| Tamaño de rotura | **25%–75%** eliminado | **15%–50%** eliminado |
+| Superficie de corte | Plano perfecto | Plano con jitter Gaussiano σ=0.05 → rugoso |
+| Modos de fractura | Solo plano | **3 modos** con probabilidades |
+
+**Los tres modos de fractura (elegidos aleatoriamente por modelo):**
+
+**Modo PLANO (40% de los pares)** — igual que v1 pero con rugosidad:
+- Un semiplano aleatorio + ruido Gaussiano en la superficie de corte.
+- Simula: taza partida en dos golpes grandes, rotura limpia de borde.
+
+**Modo CHIP (40% de los pares)** — nuevo:
+- Se elige un punto aleatorio de la superficie como "punto de impacto".
+- Se eliminan todos los puntos dentro de una esfera de radio r alrededor de ese punto.
+- El radio se ajusta para eliminar entre 15% y 50% de puntos.
+- Superficie del chip con jitter Gaussiano → borde irregular.
+- Simula: **golpe puntual** — mella, esquirla, desconche de cerámica.
+```
+    ○ ○ ○ ○ ○ ○
+    ○ ○ ○   ○ ○   ← hueco esférico = golpe
+    ○ ○ ○ ○ ○ ○
+```
+
+**Modo CUÑA (20% de los pares)** — nuevo:
+- Dos planos aleatorios que se intersectan forman una cuña triangular.
+- Se elimina la zona "dentro" de ambos planos a la vez.
+- Simula: **trozo de borde que se desprende**, esquirla lateral.
+```
+    ○ ○ ○ ○
+    ○ ○ ○ ╲ ╲   ← cuña eliminada
+    ○ ○ ╲ ╲
+```
+
+**Filtro geométrico (nuevo en v2):**
+- Se calcula la PCA de los vértices normalizados del modelo.
+- Si el ratio eigenvalor_mínimo / eigenvalor_máximo < 0.01 → se descarta.
+- Detecta: formas planas (láminas, platos) y formas lineales (agujas, barras).
+- En el log aparece como `[FILT]` con el motivo.
+
+**Carpeta de salida:** `Datos_E2_E3/General/sintetico_roturas_v2/` en Drive
+(separada de `sintetico/roturas/` para poder comparar el impacto en el entrenamiento)
+
+**Resultado de la ejecución (15 ago 2026):**
+
+| Dataset | Modelos entrada | Pares generados | Filtrados PCA | Errores |
+|---------|----------------|----------------|--------------|---------|
+| ShapeNet | 2.170 | 2.168 | 1 | 1 |
+| Objaverse | 197 | 197 | 0 | 0 |
+| **Total** | **2.367** | **2.299** | **1** | **1** |
+
+- Tasa de éxito: 99,95% en ShapeNet, 100% en Objaverse
+- Tamaño total en Drive: **113,6 MB** (4.598 archivos .npy)
+- Shape verificada: `(2048, 3)` float32 ✓
+- Notebook: `E3/generar_roturas_standalone.ipynb`
+
+**Nota técnica — crash de RAM resuelto (15 ago 2026):**
+El notebook petaba con OOM (Out Of Memory) en Colab incluso con A100 + High RAM porque `trimesh.load` + `split()` construye la topología completa del mesh (vértices + caras + aristas + grafos de adyacencia + caché interna), consumiendo 300-500 MB por modelo grande. Con 2.367 modelos en bucle, la RAM se agotaba. Solución: sustituir trimesh por `plyfile`, que lee solo las columnas x,y,z del bloque vertex del .ply sin construir topología → ~2 MB por modelo independientemente del tamaño de la malla. Fix aplicado en la Celda 3 del notebook.
+
+---
+
+#### Estrategia 3 — Oclusión por viewpoint (enfoque PoinTr) — NO la usamos
+*Referencia: "PoinTr: Diverse Point Cloud Completion with Geometry-Aware Transformers" (Yu et al., 2021)*
+
+**Cómo funciona:**
+1. Se elige un punto de vista aleatorio (una dirección en la esfera).
+2. Se simula lo que vería una cámara de profundidad (LiDAR, depth sensor) desde ese ángulo.
+3. Se conservan solo los puntos **visibles** desde ese punto de vista → los del lado frontal.
+4. Los puntos del lado posterior quedan ocultos → son la "parte que falta".
+
+```
+    cámara →  [visible]  [oculto]
+              ○ ○ ○ ○   (no se ve)
+              ○ ○ ○ ○
+```
+
+En la práctica, esto es equivalente a un corte por plano pero manteniendo solo
+la mitad "hacia la cámara", en lugar de la mitad "de espaldas al corte" que hacemos nosotros.
+La diferencia sutil es que PoinTr puede simular profundidad (puntos más cercanos a la cámara
+se ven mejor), nosotros simplemente cortamos.
+
+**Por qué PoinTr lo usa:**
+PoinTr está diseñado para el caso de uso de **escaneado 3D incompleto**: tienes un objeto
+y lo has escaneado con un sensor de profundidad desde un único ángulo.
+La parte que no se ve (la cara posterior) es la que el modelo debe completar.
+Ese escenario es realista para robótica y escaneado industrial.
+
+**Por qué NOSOTROS NO lo usamos:**
+Nuestro caso de uso es diferente: **vasijas físicamente rotas** (cerámica, porcelana).
+Una vasija rota no tiene "cara oculta por oclusión" — tiene trozos que literalmente
+ya no están. El hueco es físico, no geométrico.
+
+| | Oclusión (PoinTr) | Rotura física (nuestro caso) |
+|--|-------------------|------------------------------|
+| ¿Qué simula? | Sensor no vio esa parte | El material ya no existe |
+| Forma del hueco | Siempre hacia un lado (el de atrás) | Cualquier zona del objeto |
+| Realismo para vasijas | Bajo — no corresponde al daño real | Alto |
+| Usado en | Escaneado industrial, robótica | Restauración, arqueología, control de calidad |
+
+**Conclusión:** el enfoque de PoinTr es válido en su dominio pero inadecuado para el nuestro.
+Nuestras roturas v2 (mezcla de plano + chip + cuña) son más representativas del daño
+real en cerámica que la oclusión por viewpoint.
+
+---
+
+#### Resumen comparativo de los tres enfoques
+
+| | v1 (plano) | v2 (mezcla) | PoinTr (viewpoint) |
+|--|-----------|-------------|-------------------|
+| Modelos entrenados | PCN v1, PCN v3 | PCN v4 (pendiente) | — |
+| Datos | `sintetico/roturas/` (2.367 pares) | `sintetico_roturas_v2/` (**2.299 pares** ✅) | — |
+| Realismo para vasijas | Medio | **Alto** | Bajo |
+| Complejidad impl. | Baja | Media | Baja |
+| Estándar en papers | Sí (PCN, FoldingNet) | No (mejora propia) | Sí (PoinTr, SnowFlakeNet) |
+| Resultado PCN | CD=0.0665, F=0.024 | Pendiente (PCN v4) | — |
+
+---
+
 ### Hecho
 - [x] 246 modelos .glb de Objaverse descargados → `Datos/objaverse/raw/` — `Scripts/descargar_tazas.py`
 - [x] 197 modelos Objaverse normalizados (.ply) → `Datos/objaverse/limpias/` — `Scripts/filtrar_normalizar_tazas.py`
@@ -345,6 +524,7 @@ Archivos generados: `E3/resultados/metricas.csv`, `E3/resultados/resumen.txt`, 8
 - [x] Cuaderno `TFM_06_Cuaderno_Tazas.ipynb` probado en local y Colab
 - [x] Nerfstudio probado en Colab
 - [x] Decisión de dataset: super-categoría vasijas (mug+bowl+bottle+jar+can)
+- [x] **Roturas sintéticas v2 generadas** — 2.299 pares (plano+chip+cuña, filtro PCA) → `sintetico_roturas_v2/` en Drive (15 ago 2026) — `E3/generar_roturas_standalone.ipynb`
 - [x] `Scripts/descargar_co3d.py` creado
 - [x] Docs de organización generados: TFM_09, TFM_10, TFM_11
 
