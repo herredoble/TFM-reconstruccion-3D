@@ -643,6 +643,67 @@ Entrenamiento completado en Google Colab A100 (~2.5 horas). Best epoch: **445/50
 
 ---
 
+### H21 — PoinTr: extensiones CUDA no compilan en Colab → mocks en sys.modules
+*(15 ago 2026 — Raquel)*
+
+**Síntoma:** Al ejecutar la Celda 7 del notebook PoinTr v1, dos errores encadenados:
+
+```
+KeyError: 'PoinTr is not in the models registry'
+ModuleNotFoundError: No module named 'pointnet2_ops'
+RuntimeError: No se pudo inicializar PoinTr.
+```
+
+**Causa raíz:** PoinTr tiene dos extensiones CUDA que importa a nivel de módulo (en el propio código fuente, no solo en el training loop):
+1. `chamfer_dist` — Chamfer Distance en CUDA
+2. `pointnet2_ops` / `pointnet2_ops_lib` — FPS (Furthest Point Sampling), ball query, KNN
+
+Si cualquiera de las dos falla al compilar en Colab, el código fuente del modelo no puede importarse. Como consecuencia, el decorador `@MODELS.register_module()` nunca se ejecuta y PoinTr no queda registrado → `KeyError: 'PoinTr is not in the models registry'`.
+
+**Extensiones que fallan:**
+- `chamfer_dist`: resuelto en sesión anterior con mock
+- `pointnet2_ops`: nuevo error de esta sesión — `No module named 'pointnet2_ops'`
+
+**Fix: inyectar mocks en sys.modules ANTES de importar PoinTr**
+
+Para `pointnet2_ops`, implementar en PyTorch puro las 6 operaciones que PoinTr usa:
+
+| Operación | Descripción | Implementación |
+|-----------|-------------|---------------|
+| `furthest_point_sample(xyz, n)` | FPS clásico | Loop sobre n iteraciones, O(N·n) |
+| `gather_operation(feat, idx)` | Indexing por índices | `feat.gather(2, idx)` |
+| `ball_query(r, k, xyz, q)` | Vecinos en radio r | `torch.cdist` + `argsort` |
+| `grouping_operation(feat, idx)` | Agrupación local | `feat.gather` + reshape |
+| `three_nn(unknown, known)` | 3 vecinos más cercanos | `torch.cdist.topk(3)` |
+| `three_interpolate(feat, idx, w)` | Interpolación ponderada | gather + suma pesada |
+
+Las implementaciones en PyTorch puro son matemáticamente idénticas a las CUDA; entre 2-3x más lentas por batch. Con batch=32 y A100, el impacto es tolerable para 300 épocas.
+
+**Código del fix** (aplicado en `E3/colab_entrenar_pointr_v1.ipynb`, Celda 7, antes de cualquier import de PoinTr):
+
+```python
+if 'pointnet2_ops' not in sys.modules:
+    _utils = types.ModuleType('pointnet2_ops.pointnet2_utils')
+    _utils.furthest_point_sample = _fps     # loop FPS
+    _utils.gather_operation      = _gather_op
+    _utils.ball_query            = _ball_query  # cdist + argsort
+    _utils.grouping_operation    = _grouping_op
+    _utils.three_nn              = _three_nn
+    _utils.three_interpolate     = _three_interp
+    sys.modules['pointnet2_ops']                 = _pm2
+    sys.modules['pointnet2_ops.pointnet2_utils'] = _utils
+```
+
+**Resultado esperado:**
+- `[OK] Mock pointnet2_ops inyectado` → modelo se importa
+- `@MODELS.register_module()` corre → PoinTr queda en el registro
+- `build_model_from_cfg({'NAME': 'PoinTr', ...})` → OK
+- Entrenamiento arranca normalmente
+
+**Estado:** fix aplicado en Celda 7 del notebook. Pendiente de verificar que entrena correctamente.
+
+---
+
 ### Hecho
 - [x] 246 modelos .glb de Objaverse descargados → `Datos/objaverse/raw/` — `Scripts/descargar_tazas.py`
 - [x] 197 modelos Objaverse normalizados (.ply) → `Datos/objaverse/limpias/` — `Scripts/filtrar_normalizar_tazas.py`
