@@ -512,6 +512,33 @@ real en cerámica que la oclusión por viewpoint.
 
 ---
 
+### H18 — PCN v4 lanzado: datos v2 + w_coarse=1.0 + 500 épocas
+*(15 ago 2026 — Raquel)*
+
+Entrenamiento lanzado en Google Colab A100. Tiempo estimado: 2-3 horas.
+
+**Configuración v4:**
+- Datos: `sintetico_roturas_v2` (2.299 pares, modos plano+chip+cuña) + Fantastic Breaks (61 pares)
+- Filtro outliers σ=2.5 activo en `dataset.py` (nuevo respecto a v3)
+- Épocas: 500 (v3=400) · LR: 1e-4 · lr_decay: 100 · batch: 64
+- **w_coarse: 1.0** (v3=0.5) — igual peso para decoder coarse y fine
+
+**Motivación de los cambios respecto a v3:**
+
+| Cambio | v3 | v4 | Razón |
+|--------|----|----|-------|
+| Datos rotura | `roturas/` (solo plano) | `roturas_v2/` (plano+chip+cuña) | Roturas más realistas para vasijas |
+| w_coarse | 0.5 | **1.0** | En v3 el decoder coarse tenía poco peso → forma global difusa |
+| Épocas | 400 | **500** | v3 convergió en 347, puede beneficiarse de más margen |
+| Filtro outliers | No | **Sí** | Elimina artefactos flotantes del 12.4% de pares |
+
+**Referencia v3:** CD=0.0665, F-Score=0.024 (época 347)
+
+**Resultado:** pendiente — entrenamiento en curso.
+**Notebook:** `E3/colab_entrenar_pcn_v4.ipynb`
+
+---
+
 ### Hecho
 - [x] 246 modelos .glb de Objaverse descargados → `Datos/objaverse/raw/` — `Scripts/descargar_tazas.py`
 - [x] 197 modelos Objaverse normalizados (.ply) → `Datos/objaverse/limpias/` — `Scripts/filtrar_normalizar_tazas.py`
