@@ -80,7 +80,7 @@ Estado a 25 jul 2026:
 
 | Persona | Responsabilidad | Primera tarea |
 |---------|----------------|---------------|
-| **Raquel** | Datos + pipeline E3 | ~~Fantastic Breaks preprocesado~~ ✅ · ~~Generación sintética de roturas (v1)~~ ✅ · ~~Data loader PyTorch~~ ✅ · ~~`E3/train.py` PCN v1~~ ✅ (CD=0.077) · ~~`E3/evaluate.py`~~ ✅ · ~~**PCN v3 entrenado**~~ ✅ (CD=0.0665, F-Score=0.024, A100, con roturas v1) · **Roturas sintéticas v2** 🔄 (filtro geométrico + 3 modos: plano/chip/cuña, 15-50%) → generar `roturas_v2/` y re-entrenar PCN v4 para comparar con v3 |
+| **Raquel** | Datos + pipeline E3 | ~~Fantastic Breaks preprocesado~~ ✅ · ~~Generación sintética de roturas (v1)~~ ✅ · ~~Data loader PyTorch~~ ✅ · ~~`E3/train.py` PCN v1~~ ✅ (CD=0.077) · ~~`E3/evaluate.py`~~ ✅ · ~~**PCN v3 entrenado**~~ ✅ (CD=0.0665, F=0.024, A100) · ~~**Roturas sintéticas v2**~~ ✅ (plano+chip+cuña, 2.299 pares) · ~~**PCN v4 entrenado**~~ ✅ (CD=0.0641, F=0.0236, época 480, A100) · **PoinTr v1** 🔄 entrenando en paralelo |
 | **Rocío** | Arquitectura del modelo de reparación | Research spike: comparar PoinTr, SnowFlakeNet, PCN. Elegir el baseline. Primer entrenamiento en Fantastic Breaks |
 
 ---
