@@ -556,6 +556,50 @@ Entrenamiento completado en Google Colab A100 (~2.5 horas). Best epoch: **480/50
 
 ---
 
+### H19 — Desalineación de centroide entre roto y completo: causa confirmada del colapso del modelo
+*(15 ago 2026 — Raquel)*
+
+**Observación:** Al revisar las figuras de evaluación PCN v3/v4, en los peores casos la nube rota (azul) aparece claramente desplazada respecto al GT completo (verde). El modelo predice en esos casos una **placa plana horizontal** — síntoma de colapso (no sabe qué predecir).
+
+**Causa raíz:** El proceso de generación de roturas no re-centra la nube parcial. Al eliminar 15-50% de los puntos de un lado del objeto, el centroide de la nube restante se desplaza hacia la región intacta. Mientras tanto, el GT permanece centrado en el origen (0,0,0). El modelo tiene que aprender implícitamente esta traslación variable, lo cual es muy difícil.
+
+Ejemplo visual (muestra 150, v3):
+- Rota: fragmento pequeño, centroide ~(−0.4, 0, 0)
+- GT: bol completo, centroide ~(0, 0, 0)
+- Predicción: placa plana (CD=0.181, F-Score=0.006)
+
+Ejemplo del mejor caso (muestra 37, v3):
+- Rota: la rotura es leve → centroide no muy desplazado
+- Predicción: razonablemente correcta (CD=0.033, F-Score=0.122)
+
+**El patrón es inequívoco:** a mayor desalineación de centroide, peor predicción. Es la causa principal de los outliers extremos (CD=0.229 en v4).
+
+**Fix propuesto en `E3/dataset.py` (v5):**
+
+Centrar la nube rota en su propio centroide y desplazar el GT por la misma cantidad:
+
+```python
+# En __getitem__, tras cargar roto y completo:
+roto_mean = roto.mean(axis=0)        # centroide del fragmento
+roto      = roto     - roto_mean     # centrar fragmento en (0,0,0)
+completo  = completo - roto_mean     # desplazar GT al mismo frame
+```
+
+**Por qué es correcto:**
+- El modelo siempre recibe una entrada centrada → representación consistente
+- El GT está expresado en el frame del fragmento (no del objeto original)
+- En inferencia: centrar el fragmento roto real → predecir → la salida ya está en el frame correcto
+- Es el preprocesado estándar en FoldingNet, GRNet y otras implementaciones de shape completion
+
+**Impacto esperado en v5:**
+- Reducción significativa de la varianza (std CD 0.028 → ~0.018)
+- Mejora de los peores casos (CD peor 0.229 → ~0.15)
+- Mejora media estimada: 10-20% respecto a v4
+
+**Estado:** pendiente de implementar en `E3/dataset.py` + re-entrenar como PCN v5.
+
+---
+
 ### Hecho
 - [x] 246 modelos .glb de Objaverse descargados → `Datos/objaverse/raw/` — `Scripts/descargar_tazas.py`
 - [x] 197 modelos Objaverse normalizados (.ply) → `Datos/objaverse/limpias/` — `Scripts/filtrar_normalizar_tazas.py`
