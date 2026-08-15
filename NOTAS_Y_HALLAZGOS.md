@@ -503,39 +503,56 @@ real en cerámica que la oclusión por viewpoint.
 
 | | v1 (plano) | v2 (mezcla) | PoinTr (viewpoint) |
 |--|-----------|-------------|-------------------|
-| Modelos entrenados | PCN v1, PCN v3 | PCN v4 (pendiente) | — |
+| Modelos entrenados | PCN v1, PCN v3 | **PCN v4** ✅ | — |
 | Datos | `sintetico/roturas/` (2.367 pares) | `sintetico_roturas_v2/` (**2.299 pares** ✅) | — |
 | Realismo para vasijas | Medio | **Alto** | Bajo |
 | Complejidad impl. | Baja | Media | Baja |
 | Estándar en papers | Sí (PCN, FoldingNet) | No (mejora propia) | Sí (PoinTr, SnowFlakeNet) |
-| Resultado PCN | CD=0.0665, F=0.024 | Pendiente (PCN v4) | — |
+| Resultado PCN | CD=0.0665, F=0.024 | **CD=0.0641, F=0.0236** ✅ | — |
 
 ---
 
-### H18 — PCN v4 lanzado: datos v2 + w_coarse=1.0 + 500 épocas
+### H18 — PCN v4: resultados y comparativa con v3
 *(15 ago 2026 — Raquel)*
 
-Entrenamiento lanzado en Google Colab A100. Tiempo estimado: 2-3 horas.
+Entrenamiento completado en Google Colab A100 (~2.5 horas). Best epoch: **480/500**.
 
 **Configuración v4:**
-- Datos: `sintetico_roturas_v2` (2.299 pares, modos plano+chip+cuña) + Fantastic Breaks (61 pares)
-- Filtro outliers σ=2.5 activo en `dataset.py` (nuevo respecto a v3)
-- Épocas: 500 (v3=400) · LR: 1e-4 · lr_decay: 100 · batch: 64
-- **w_coarse: 1.0** (v3=0.5) — igual peso para decoder coarse y fine
+- Datos: `sintetico_roturas_v2` (2.299 pares, modos plano+chip+cuña) + Fantastic Breaks (61 pares) = **2.360 total**
+- GPU: NVIDIA A100-SXM4-40GB (42.4 GB VRAM)
+- Filtro outliers σ=2.5 activo en `dataset.py`
+- Épocas: 500 · LR: 1e-4 · lr_decay: 100 · batch: 64 · **w_coarse: 1.0**
 
-**Motivación de los cambios respecto a v3:**
+**Resultados:**
 
-| Cambio | v3 | v4 | Razón |
-|--------|----|----|-------|
-| Datos rotura | `roturas/` (solo plano) | `roturas_v2/` (plano+chip+cuña) | Roturas más realistas para vasijas |
-| w_coarse | 0.5 | **1.0** | En v3 el decoder coarse tenía poco peso → forma global difusa |
-| Épocas | 400 | **500** | v3 convergió en 347, puede beneficiarse de más margen |
-| Filtro outliers | No | **Sí** | Elimina artefactos flotantes del 12.4% de pares |
+| Métrica | PCN v3 (ref) | PCN v4 | Cambio |
+|---------|-------------|--------|--------|
+| CD-L1 media | 0.066536 | **0.064096** | −3.7% ✓ |
+| CD-L1 mediana | 0.062840 | **0.056996** | −9.3% ✓✓ |
+| CD-L1 std | 0.021672 | 0.028339 | +30.8% (↑ varianza) |
+| CD-L1 mejor | 0.028372 | **0.027344** | −3.6% ✓ |
+| CD-L1 peor | 0.166181 | 0.229480 | +38% (↑ peor caso) |
+| F-Score media | 0.0243 | 0.0236 | −2.9% (≈ igual) |
+| F-Score mediana | 0.0115 | **0.0123** | +7% ✓ |
+| Best epoch | 347/400 | 480/500 | — |
+| Muestras test | 237 | 236 | — |
 
-**Referencia v3:** CD=0.0665, F-Score=0.024 (época 347)
+**Análisis:**
 
-**Resultado:** pendiente — entrenamiento en curso.
-**Notebook:** `E3/colab_entrenar_pcn_v4.ipynb`
+1. **Mejora real pero modesta en media (−3.7%).** La mediana mejora más (−9.3%), lo que indica que el modelo es claramente mejor en los casos típicos. La media arrastra outliers extremos.
+
+2. **Varianza aumenta.** El std sube de 0.021 a 0.028 y el peor caso empeora (0.166→0.229). Los nuevos modos de rotura (chip, cuña) crean algunos ejemplos más difíciles de reconstruir.
+
+3. **F-Score prácticamente igual.** La diferencia (0.0243→0.0236) está dentro del margen de ruido estadístico. La mediana mejora ligeramente (0.0115→0.0123), consistente con la mejora en CD.
+
+4. **El modelo no ha convergido del todo** (best en época 480 de 500). Un entrenamiento más largo podría mejorar ligeramente las métricas.
+
+5. **Conclusión:** los datos v2 (roturas más realistas) ayudan en los casos típicos pero aumentan la dificultad en los extremos. w_coarse=1.0 no perjudicó. El siguiente paso es comparar con PoinTr v1 (entrenando en paralelo).
+
+**Archivos:**
+- Notebook: `E3/colab_entrenar_pcn_v4.ipynb`
+- Modelo: Drive → `Datos_E2_E3/E3/Raquel/modelos/v4_pcn/best.pt`
+- Resultados: Drive → `Datos_E2_E3/E3/Raquel/resultados/v4_pcn/`
 
 ---
 
@@ -552,6 +569,7 @@ Entrenamiento lanzado en Google Colab A100. Tiempo estimado: 2-3 horas.
 - [x] Nerfstudio probado en Colab
 - [x] Decisión de dataset: super-categoría vasijas (mug+bowl+bottle+jar+can)
 - [x] **Roturas sintéticas v2 generadas** — 2.299 pares (plano+chip+cuña, filtro PCA) → `sintetico_roturas_v2/` en Drive (15 ago 2026) — `E3/generar_roturas_standalone.ipynb`
+- [x] **PCN v4 entrenado** — CD=0.0641, F=0.0236, época 480/500, A100 (15 ago 2026) — `E3/colab_entrenar_pcn_v4.ipynb`
 - [x] `Scripts/descargar_co3d.py` creado
 - [x] Docs de organización generados: TFM_09, TFM_10, TFM_11
 
