@@ -57,6 +57,22 @@ FILTRAR_OUTLIERS = True   # ← cambia a False para desactivar
 SIGMA_OUTLIERS   = 2.5    # umbral: puntos a más de 2.5σ del centroide se eliminan
 N_PUNTOS         = 2048   # puntos por nube tras el filtro (debe coincidir con el modelo)
 
+# ---------------------------------------------------------------------------
+# CENTRADO EN EL FRAME DEL FRAGMENTO
+# Activo por defecto desde v5. Para desactivarlo, pon CENTRAR_EN_ROTO = False.
+#
+# Problema (H19): al eliminar 15-50% de puntos de un lado del objeto, el
+# centroide de la nube rota se desplaza hacia la región intacta mientras el
+# GT permanece en el origen (0,0,0). El modelo tiene que aprender la traslación
+# implícitamente → colapsa a placa plana en los peores casos (CD≈0.18-0.23).
+#
+# Fix: centrar la rota en su propio centroide y desplazar el GT la misma cantidad.
+# Ambas nubes quedan en el mismo frame de referencia (centrado en el fragmento).
+# En inferencia: centrar el fragmento → predecir → la salida ya está alineada.
+# Estándar en FoldingNet, GRNet y la mayoría de implementaciones de shape completion.
+# ---------------------------------------------------------------------------
+CENTRAR_EN_ROTO = True    # ← cambia a False para comportamiento pre-v5
+
 
 # ---------------------------------------------------------------------------
 # PARTE 0: FILTRO DE OUTLIERS
@@ -250,6 +266,14 @@ class ShapeCompletionDataset(Dataset):
         if FILTRAR_OUTLIERS:
             roto     = _quitar_outliers_y_remuestrear(roto,     self.rng)
             completo = _quitar_outliers_y_remuestrear(completo, self.rng)
+
+        # Centrado en el frame del fragmento (ver constante CENTRAR_EN_ROTO).
+        # Se hace ANTES de la augmentación para que la rotación se aplique
+        # ya con ambas nubes en el mismo frame de referencia.
+        if CENTRAR_EN_ROTO:
+            roto_mean = roto.mean(axis=0)
+            roto      = roto      - roto_mean
+            completo  = completo  - roto_mean
 
         # Augmentación solo durante entrenamiento
         if self.augmentar:
