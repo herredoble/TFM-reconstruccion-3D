@@ -700,7 +700,58 @@ if 'pointnet2_ops' not in sys.modules:
 - `build_model_from_cfg({'NAME': 'PoinTr', ...})` → OK
 - Entrenamiento arranca normalmente
 
-**Estado:** fix aplicado en Celda 7 del notebook. Pendiente de verificar que entrena correctamente.
+**Estado:** fix aplicado en Celda 7 del notebook.
+
+**Errores adicionales resueltos (16 ago 2026):**
+
+- **`knn_cuda` instalado pero falla** — La versión compilada de `knn_cuda` hace `assert torch.cuda.is_available()` en `__init__`. Fix: forzar siempre nuestro mock con `_force('knn_cuda', ...)` (sobreescribe cualquier versión existente en sys.modules).
+- **`PoinTr.py` línea 25: `.cuda()` hardcodeado** — La clase `Fold.__init__` hace `self.folding_seed = torch.cat([a, b], dim=0).cuda()`. Si no hay GPU disponible (runtime CPU o T4 sin asignar), lanza `AssertionError: Torch not compiled with CUDA enabled`. Fix: parchear todos los `.py` de `/content/PoinTr/models/` reemplazando `.cuda()` por `.to(device)` ANTES de importar los módulos.
+- **Sin unidades GPU en Colab Pro** — Tanto A100 como T4 agotados. Fix temporal: versión `_prueba` del notebook que corre 2 épocas / 200 muestras en CPU para verificar el código.
+
+**Verificación 16 ago 2026:** `colab_entrenar_pointr_v1_prueba.ipynb` ejecutado en CPU sin errores. Prueba OK — val loss=0.1408 en época 2 (no comparable, solo verifica el pipeline).
+
+**Pendiente:** lanzar `colab_entrenar_pointr_v1.ipynb` cuando se repongan unidades T4/A100.
+
+---
+
+### H22 — PoinTr v2: primer entrenamiento completo con datos filtrados
+*(24 ago 2026 — Raquel)*
+
+Primer entrenamiento PoinTr con datos limpios (blacklist de 1.958 pares excluidos de sintetico_roturas_centradas).
+
+**Configuración v2:**
+- Datos: 402 pares limpios — sintetico_roturas_centradas (filtrado) + Fantastic Breaks (61 pares)
+  - Train: 321 | Val: 40 | Test: 41 (batches: 11/2/2)
+- GPU: Tesla T4 (15.6 GB)
+- Épocas: 150 · LR: 1e-4 · W_coarse: 0.5 · batch: 32
+- Optimizer: AdamW · Scheduler: CosineAnnealingLR
+
+⚠️ **Contaminación en épocas 1-30:** La lógica de resume encontró un checkpoint epoch_030 de un primer intento donde sintetico no se había cargado (ruta incorrecta: `sintetico_roturas_v2` en lugar de `sintetico_roturas_centradas`). Esas primeras 30 épocas se entrenaron solo con los 61 pares de Fantastic Breaks. A partir de época 31, el modelo recibió los 402 pares correctos y se recuperó. **A pesar de ello, superó a PCN v5.**
+
+**Resultados — test set (41 muestras):**
+
+| Métrica | PCN v5 (ref) | PoinTr v2 | Δ |
+|---------|-------------|-----------|---|
+| CD-L1   | 0.0630      | **0.0533** | −15.3% |
+| F-Score | 0.0257      | **0.3278** | +12.7× |
+| Best epoch | 445/500  | 150/150   | — |
+
+**Análisis:**
+
+1. **CD −15.3%: mejora sustancial pese a contaminación.** El transformer (PoinTr) supera claramente a PointNet+folding (PCN), incluso con los primeros 30 epochs entrenados solo en 61 pares de Fantastic Breaks.
+
+2. **F-Score ×12.7: salto cualitativo.** Mide precisión punto a punto (threshold=0.01). PoinTr coloca puntos mucho más cerca de la geometría real — métrica más relevante para calidad visual de la reconstrucción.
+
+3. **Modelo aún en mejora a época 150.** Las curvas muestran train y val bajando en la última época → v3 con 200 épocas y sin contaminación puede mejorar más.
+
+4. **Dataset pequeño post-filtrado.** Solo 402 pares (el blacklist eliminó el 83% del sintetico). El modelo generaliza bien dado el volumen limitado.
+
+**Conclusión:** PoinTr supera PCN en ambas métricas incluso con entrenamiento parcialmente contaminado. La ventaja del transformer sobre PointNet+folding queda confirmada. Próximo: PoinTr v3 con `CENTRAR_EN_ROTO=False` (alineación original roto/completo) y 200 épocas limpias.
+
+**Archivos:**
+- Notebook: `E3/colab_entrenar_pointr_v2.ipynb`
+- Modelo: Drive → `Datos_E2_E3/E3/Raquel/modelos/v2_pointr/best.pt`
+- Resultados: Drive → `Datos_E2_E3/E3/Raquel/resultados/v2_pointr/`
 
 ---
 
@@ -719,6 +770,7 @@ if 'pointnet2_ops' not in sys.modules:
 - [x] **Roturas sintéticas v2 generadas** — 2.299 pares (plano+chip+cuña, filtro PCA) → `sintetico_roturas_v2/` en Drive (15 ago 2026) — `E3/generar_roturas_standalone.ipynb`
 - [x] **PCN v4 entrenado** — CD=0.0641, F=0.0236, época 480/500, A100 (15 ago 2026) — `E3/colab_entrenar_pcn_v4.ipynb`
 - [x] **PCN v5 entrenado** — CD=0.0630, F=0.0257, época 445/500, A100 (15 ago 2026) — fix centroide (H19) — `E3/colab_entrenar_pcn_v5.ipynb`
+- [x] **PoinTr v1 notebook listo y verificado en CPU** — prueba 2 épocas/200 muestras OK (16 ago 2026) — `E3/colab_entrenar_pointr_v1.ipynb` + `E3/colab_entrenar_pointr_v1_prueba.ipynb` — pendiente entrenamiento real con T4/A100
 - [x] `Scripts/descargar_co3d.py` creado
 - [x] Docs de organización generados: TFM_09, TFM_10, TFM_11
 

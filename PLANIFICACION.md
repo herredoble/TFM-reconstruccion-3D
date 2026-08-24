@@ -80,7 +80,7 @@ Estado a 25 jul 2026:
 
 | Persona | Responsabilidad | Primera tarea |
 |---------|----------------|---------------|
-| **Raquel** | Datos + pipeline E3 | ~~Fantastic Breaks preprocesado~~ ✅ · ~~Generación sintética de roturas (v1)~~ ✅ · ~~Data loader PyTorch~~ ✅ · ~~`E3/train.py` PCN v1~~ ✅ (CD=0.077) · ~~`E3/evaluate.py`~~ ✅ · ~~**PCN v3 entrenado**~~ ✅ (CD=0.0665, F=0.024, A100) · ~~**Roturas sintéticas v2**~~ ✅ (plano+chip+cuña, 2.299 pares) · ~~**PCN v4 entrenado**~~ ✅ (CD=0.0641, F=0.0236, época 480, A100) · ~~**PCN v5 entrenado**~~ ✅ (CD=0.0630, F=0.0257, época 445, fix centroide) · **PoinTr v1** 🔄 entrenando en paralelo |
+| **Raquel** | Datos + pipeline E3 | ~~Fantastic Breaks preprocesado~~ ✅ · ~~Generación sintética de roturas (v1)~~ ✅ · ~~Data loader PyTorch~~ ✅ · ~~`E3/train.py` PCN v1~~ ✅ (CD=0.077) · ~~`E3/evaluate.py`~~ ✅ · ~~**PCN v3 entrenado**~~ ✅ (CD=0.0665, F=0.024, A100) · ~~**Roturas sintéticas v2**~~ ✅ (plano+chip+cuña, 2.299 pares) · ~~**PCN v4 entrenado**~~ ✅ (CD=0.0641, F=0.0236, época 480, A100) · ~~**PCN v5 entrenado**~~ ✅ (CD=0.0630, F=0.0257, época 445, fix centroide) · ~~**PoinTr v1 notebook verificado en CPU**~~ ✅ (16 ago) · ~~**PoinTr v2 entrenado**~~ ✅ (CD=0.0533, F=0.3278, T4, época 150, blacklist) · **PoinTr v3** ⏳ en progreso (CENTRAR_EN_ROTO=False, 200 ep) |
 | **Rocío** | Arquitectura del modelo de reparación | Research spike: comparar PoinTr, SnowFlakeNet, PCN. Elegir el baseline. Primer entrenamiento en Fantastic Breaks |
 
 ---
