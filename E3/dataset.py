@@ -296,6 +296,7 @@ def construir_dataloaders(
     augmentar: bool = True,
     semilla: int = 42,
     num_workers: int = 0,
+    blacklist: set | None = None,
 ) -> tuple[DataLoader, DataLoader, DataLoader]:
     """Construye los tres DataLoaders (train, val, test) a partir de las carpetas de datos.
 
@@ -325,6 +326,15 @@ def construir_dataloaders(
 
     # 1. Recopilar todos los pares de todas las carpetas
     todos_los_pares = construir_pares(carpetas)
+
+    if blacklist:
+        n_antes = len(todos_los_pares)
+        todos_los_pares = [
+            (r, c) for r, c in todos_los_pares
+            if r.stem.replace("_roto", "") not in blacklist
+        ]
+        print(f"  Blacklist       : {n_antes - len(todos_los_pares)} pares excluidos → {len(todos_los_pares)} restantes")
+
     n_total = len(todos_los_pares)
 
     if n_total == 0:
