@@ -1043,6 +1043,28 @@ Ambos factores se pueden separar con un experimento `v6_obj_sn_long` (solo Ob+SN
 
 ---
 
+### H31 — E4: mallas de PoinTr rara vez son watertight tras reparación básica
+*(28 ago 2026)*
+
+Primera ejecución real de E4 con 8 mallas generadas por PoinTr v6_obj_sn: 7/8 salen con `watertight=NO` incluso después de manifold3d + fill_holes + fix_normals.
+
+**Por qué ocurre:** La reconstrucción Poisson (depth=9) genera superficies con huecos en zonas de baja densidad de puntos — partes del objeto que PoinTr no reconstruyó bien o donde la nube es escasa. Esos huecos sobreviven a fill_holes cuando son demasiado grandes o complejos.
+
+**Opciones para mejorar (por orden de impacto):**
+
+| Opción | Efecto esperado | Coste |
+|--------|----------------|-------|
+| Aumentar `POISSON_DEPTH` a 10–11 | Más detalle, menos huecos en superficies densas | Más lento, STLs más grandes |
+| Post-procesar con `voxel_remesh` de pymeshlab | Convierte la malla a voxel y vuelve a triangular — fuerza cierre | Pierde detalle geométrico |
+| Usar `trimesh.voxel` + `marching_cubes` | Alternativa a Poisson, garantiza cierre | Menos fiel a la nube original |
+| Segunda pasada de manifold3d | A veces una segunda llamada cierra lo que la primera dejó abierto | Bajo coste, probar |
+
+**Para el TFM:** El resultado `APTO: NO` es esperado en esta fase (E3 aún no es perfecto). Lo importante es que E4 genere un STL válido aunque no sea 100% watertight — las impresoras modernas con Cura/PrusaSlicer tienen reparación automática integrada. Documentar en la memoria como limitación conocida y trabajo futuro.
+
+**Acción inmediata:** Ninguna — el notebook funciona y genera STLs. El `apto_para_imprimir=False` en report.json es honesto, no un error del pipeline.
+
+---
+
 ### Hecho
 - [x] 246 modelos .glb de Objaverse descargados → `Datos/objaverse/raw/` — `Scripts/descargar_tazas.py`
 - [x] 197 modelos Objaverse normalizados (.ply) → `Datos/objaverse/limpias/` — `Scripts/filtrar_normalizar_tazas.py`
