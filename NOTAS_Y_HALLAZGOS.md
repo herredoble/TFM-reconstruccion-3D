@@ -755,6 +755,267 @@ Primer entrenamiento PoinTr con datos limpios (blacklist de 1.958 pares excluido
 
 ---
 
+### H23 — Descubrimiento alineación Fantastic Breaks + PoinTr v3 y v4
+*(25 ago 2026 — Raquel, Rocío)*
+
+**Problema identificado:** Las figuras rotas en Fantastic Breaks v1 no coinciden en posición con su objeto completo correspondiente. El fragmento roto estaba en un frame de coordenadas diferente al objeto completo, lo que significa que el modelo aprendía a predecir puntos en ubicaciones inconsistentes con la pieza rota de entrada.
+
+**Solución de Rocío:** Corrigió el preprocesado de los 61 pares de Fantastic Breaks y guardó la versión corregida en Drive → `Datos_E2_E3/General/Fantastik_Break_Procesado_v2`. En la v2 el fragmento roto se superpone correctamente al objeto completo (mismo frame de coordenadas).
+
+**PoinTr v3 — resultados parciales:**
+- Configuración: 402 pares (sintetico filtrado + FB v1), CENTRAR_EN_ROTO=False, 200 épocas
+- GPU: Tesla T4
+- Mejor época: 155/200 · mejor val loss: 0.109349
+- Evaluación (test CD/F-Score): pendiente — sesión Colab terminó antes de ejecutar celda 9
+- Archivos: `E3/colab_entrenar_pointr_v3.ipynb` · Drive → `modelos/v3_pointr/`
+
+**PoinTr v4 — experimento de calidad de datos:**
+- Solo Fantastic Breaks v2 (61 pares con alineación correcta, sin datos sintéticos, sin blacklist)
+- CENTRAR_EN_ROTO=False (los datos ya están correctamente alineados por Rocío)
+- 300 épocas · batch=32 · ~48 pares train (~2 batches/época)
+- GPU: Tesla T4 · best época: 285/300
+
+**Resultados v4 — test set (7 muestras):**
+
+| Métrica | PCN v5 | PoinTr v2* | PoinTr v4 |
+|---------|--------|------------|-----------|
+| CD-L1   | 0.0630 | 0.0533     | **0.0569** |
+| F-Score | 0.0257 | 0.3278*    | 0.0285    |
+
+*v2 tenía CENTRAR_EN_ROTO=True que inflaba el F-Score (tarea artificialmente más fácil)
+
+**Análisis:**
+1. **CD=0.0569 con solo 61 pares reales supera a PCN v5 con ~400 pares** → datos bien alineados valen más que cantidad en este rango.
+2. **F-Score bajo (0.0285) no indica regresión respecto a v2** — el 0.3278 de v2 era por CENTRAR_EN_ROTO=True; 0.0285 vs 0.0257 (PCN v5) es comparable y consistente.
+3. **7 muestras de test** → varianza muy alta, resultados no estadísticamente fiables.
+4. **Best epoch 285/300** → sin overfitting claro; el modelo seguía aprendiendo hasta el final.
+5. **El sintético siempre estuvo bien alineado** (los fragmentos se cortan del propio mesh completo). El problema era específico del preprocesado de Fantastic Breaks v1.
+
+**Conclusión:** La calidad de datos supera a la cantidad. Próximo paso natural: PoinTr v5 = FB v2 + sintético filtrado (blacklist) con CENTRAR_EN_ROTO=False, para tener ~402 pares correctamente alineados y una evaluación estadísticamente válida.
+
+**Archivos:**
+- Notebook: `E3/colab_entrenar_pointr_v4.ipynb`
+- Modelo: Drive → `Datos_E2_E3/E3/Raquel/modelos/v4_pointr_fbv2/best.pt`
+- Resultados: Drive → `Datos_E2_E3/E3/Raquel/resultados/v4_pointr_fbv2/`
+
+---
+
+### H25 — Timeline de limpieza de datos: qué usó cada experimento
+*(27 ago 2026 — Raquel · para contexto de resultados y redacción)*
+
+Esta tabla es clave para interpretar los resultados: los experimentos anteriores a PoinTr v4 usaron datos con problemas de alineación o ruido que explican las métricas inferiores.
+
+#### Estado de los datasets por versión
+
+| Experimento | FB usado | Objaverse | Sintético | CENTRAR_EN_ROTO | ¿Datos limpios? |
+|-------------|----------|-----------|-----------|-----------------|-----------------|
+| PCN v1 | FB v1 ❌ desalineado | — | sint_v1 (solo plano) | False | ❌ |
+| PCN v3 | FB v1 ❌ desalineado | — | sint_v1 (solo plano) | False | ❌ |
+| PCN v4 | FB v1 ❌ desalineado | — | sint_v2 (plano+chip+cuña) | False | ❌ FB |
+| PCN v5 | FB v1 ❌ desalineado | — | sint_v2 | **True** (compensa parcialmente) | ❌ FB |
+| PoinTr v2 | FB v1 ❌ desalineado | — | sint_centradas_filtrado | **True** → F-Score inflado | ❌ FB + F inflado |
+| PoinTr v3 | FB v1 ❌ desalineado | — | sint_centradas_filtrado | False | ❌ FB desalineado |
+| PoinTr v4 | **FB v2 ✅** | — | — (solo reales) | False | ✅ primer exp honesto |
+| PoinTr v5_fb_obj | **FB v2 ✅** | **Ob v2 ✅** | — | False | ✅ |
+| PoinTr v5_obj | — | **Ob v2 ✅** | — | False | ✅ |
+
+#### Qué significa cada problema
+
+- **FB v1 desalineado:** Los fragmentos rotos y la pieza completa están en frames de coordenadas distintos. El modelo intenta predecir puntos en el lugar equivocado del espacio. Causa de F-Score bajo y CD alto en PCN.
+- **CENTRAR_EN_ROTO=True en PoinTr v2:** Centra ambas nubes en el centroide del fragmento antes de pasarlas al modelo. El GT queda artificialmente "cerca" del roto → F-Score 0.3278 irreal (×12 vs honesto). Útil para entrenar PCN (donde no había datos bien alineados), distorsionante en PoinTr.
+- **sint_v1 (solo plano):** Roturas demasiado grandes (25-75%), superficie de corte perfecta. Poco realista.
+- **sint_centradas_filtrado:** Sintético con blacklist (1.958 pares malos eliminados). Solo 402 pares útiles de los 2.367 originales. El filtro era necesario porque el sintético v1 tenía muchos modelos con artefactos.
+
+#### Carpetas de datos en Drive (estado a 27 ago 2026)
+
+**En uso activo (experimentos v5+):**
+- `Datos_E2_E3/General/Fantastik_Break_Procesado_v2/` — 120 npy (61 pares reales, Rocío-cleaned)
+- `Datos_E2_E3/General/roturas_Objaverse_v2/` — 794 npy (397 pares, Rocío-cleaned)
+- `Datos_E2_E3/General/shapenet_roturas/` — 4208 npy (2104 pares, sin usar en entrenamiento aún)
+
+**Obsoletas / sustituidas (no borrar, son referencia histórica):**
+- `Fantastik_Break_Preprocesado/` — FB v1, sustituida por v2
+- `Objaverse_limpias/` — 197 ply originales, sustituida por v2 (131 ply Rocío-cleaned)
+- `sintetico_roturas/` — v1 del sintético (plano simple), sustituida
+
+**No útiles (vacías o irrelevantes):**
+- `Shapenet_limpias/` — 0 bytes, vacía
+- `v2_pcn/` y `v5_pointr_objaverse_fbv2/` en modelos/ — carpetas vacías
+
+#### Impacto en la memoria del TFM
+
+Para la redacción: los resultados de PCN v1-v5 y PoinTr v2-v3 son con datos no completamente limpios. La comparación honesta empieza en **PoinTr v4** (primer experimento con datos correctamente alineados). Los resultados de v4/v5_fb_obj/v5_obj son los que representan el rendimiento real del sistema.
+
+---
+
+### H26 — PoinTr v5_obj: nuevo MEJOR resultado (CD=0.0306)
+*(27 ago 2026 — Raquel)*
+
+**Configuración:**
+- Dataset: solo Objaverse v2 (397 pares, Rocío-cleaned) — sin Fantastic Breaks
+- Train: 317 | Val: 39 | Test: 41
+- GPU: A100 · 300 épocas · mejor época: 257/300
+- CENTRAR_EN_ROTO=False
+
+**Resultados — test set (41 muestras):**
+
+| Métrica | PCN v5 | PoinTr v4 | PoinTr v5_fb_obj | **PoinTr v5_obj** |
+|---------|--------|-----------|------------------|-------------------|
+| CD-L1   | 0.0630 | 0.0569    | 0.0323           | **0.0306**        |
+| F-Score | 0.0257 | 0.0285    | 0.2548           | **0.2701**        |
+| N test  | —      | 7         | 47               | 41                |
+
+**Análisis:**
+1. **Añadir FB v2 a Objaverse empeora ligeramente el resultado** (0.0323 → 0.0306 al quitar FB). Los 60 pares reales de FB, aunque correctamente alineados, introducen varianza o distribución diferente que no ayuda al modelo.
+2. **Solo Objaverse es suficiente** para superar todo lo anterior. 397 pares limpios de Rocío baten a cualquier combinación anterior.
+3. **F-Score más alto con solo Ob** (0.2701 vs 0.2548) — los datos más homogéneos producen predicciones más precisas punto a punto.
+4. **Mejor época 257/300** — el modelo convergió antes que v5_fb_obj (289), coherente con un dataset más limpio y homogéneo.
+
+**Conclusión:** La limpieza y alineación de Objaverse por Rocío es el mayor factor de mejora del proyecto. FB v2 añade variedad pero también ruido; para el siguiente experimento (v5_all con ShapeNet), hay que monitorizar si ShapeNet (parcialmente limpio) mejora o empeora.
+
+**Archivos:**
+- Notebook: `E3/colab_entrenar_pointr_v5.ipynb` (flags: `USAR_OBJAVERSE=True, USAR_FB_V2=False`)
+- Modelo: Drive → `Datos_E2_E3/E3/Raquel/modelos/v5_obj/best.pt`
+- Resultados: Drive → `Datos_E2_E3/E3/Raquel/resultados/v5_obj/metricas.json`
+
+---
+
+### H27 — Auditoría Drive (27 ago 2026): estado y espacio ocupado
+*(27 ago 2026 — Raquel · registro para no borrar pero saber qué hay)*
+
+**Resumen del espacio ocupado en Drive (E3/Raquel/modelos/):**
+
+| Carpeta | Tamaño | Contenido | Decisión futura |
+|---------|--------|-----------|-----------------|
+| v1_pcn/ | 59MB | best.pt | Borrar (CD=0.077, superado) |
+| v1_pointr/ | 398MB | best.pt | Borrar (prueba inicial sin eval) |
+| v2_pcn/ | 0B | vacía | Borrar |
+| v2_pointr/ | 398MB | best.pt | Borrar (datos inflados) |
+| v3_pcn/ | 59MB | best.pt | Conservar (referencia) |
+| v3_pointr/ | **5GB** | best.pt + epoch_010..110 | Borrar epoch_*.pt; best.pt pendiente eval |
+| v4_pcn/ | 59MB | best.pt | Conservar (referencia) |
+| v4_pointr_fbv2/ | **12GB** | best.pt + epoch_010..300 | Borrar epoch_*.pt; conservar best.pt |
+| v5_fb_obj/ | **12GB** | best.pt + epoch_010..300 | Borrar epoch_*.pt; conservar best.pt |
+| v5_obj/ | **12GB** | best.pt + epoch_010..300 | Borrar epoch_*.pt; conservar best.pt |
+| v5_pcn/ | 59MB | best.pt | Conservar (mejor PCN) |
+| v5_pointr_objaverse_fbv2/ | 0B | vacía | Borrar (nombre antiguo de v5_fb_obj) |
+
+**Ahorro potencial borrando epoch_*.pt y modelos obsoletos: ~40GB**
+
+**Nota:** No se borra nada ahora. Esta tabla sirve de referencia para una limpieza futura.
+
+---
+
+### H24 — PoinTr v5_fb_obj: mejor resultado hasta la fecha (CD=0.0323)
+*(27 ago 2026 — Raquel)*
+
+**Configuración:**
+- Datasets: Fantastic Breaks v2 (60 pares) + Objaverse v2 (397 pares) = **457 pares totales**
+- Train: 365 | Val: 45 | Test: 47 — primer experimento con test estadísticamente sólido
+- GPU: A100 (40 GB) · 300 épocas · mejor época: 289/300
+- CENTRAR_EN_ROTO=False · LR=1e-4 · batch=32
+
+**Resultados — test set (47 muestras):**
+
+| Métrica | PCN v5 | PoinTr v2* | PoinTr v4 | **PoinTr v5_fb_obj** |
+|---------|--------|------------|-----------|----------------------|
+| CD-L1   | 0.0630 | 0.0533     | 0.0569    | **0.0323**           |
+| F-Score | 0.0257 | 0.3278*    | 0.0285    | **0.2548**           |
+| N test  | ?      | 41         | 7         | **47**               |
+
+*PoinTr v2: F-Score inflado por CENTRAR_EN_ROTO=True
+
+**Análisis:**
+1. **−48.7% CD vs PCN v5** — la mayor mejora del proyecto hasta ahora.
+2. **−39.4% CD vs PoinTr v2** — a pesar de que v2 tenía CENTRAR_EN_ROTO=True (ventaja artificial).
+3. **Factor clave: Objaverse v2 de Rocío** — de 61 pares (v4) a 457 pares, todos correctamente alineados. La combinación de datos reales de calidad es lo que dispara el resultado.
+4. **F-Score 0.2548 honesto** — sin el truco de centrar. El modelo coloca puntos cerca de la geometría real.
+5. **Best epoch 289/300** — el modelo todavía mejoraba al final. Más épocas o más datos podrían mejorar más.
+6. **47 muestras de test** — primer resultado estadísticamente confiable del pipeline PoinTr.
+
+**Conclusión:** La calidad y alineación de los datos es el factor dominante. Rocío limpiar Objaverse fue más impactante que cualquier cambio de arquitectura o hiperparámetro.
+
+**Próximos experimentos:** v5_obj (solo Objaverse), v5_all (+ ShapeNet) para aislar la contribución de cada dataset.
+
+---
+
+### H28 — Resultados de Rocío: PCN v3-v9 + TopNet v1 (27 ago 2026)
+*(27 ago 2026 — Raquel, extraído de estado_entrenamiento.json en Drive)*
+
+Rocío ha entrenado 3 arquitecturas distintas (PCN, TopNet) con estrategias pretrain → finetune.
+Sus métricas son `mejor_val` (CD-L1 sobre validación), **no CD-L1 de test independiente** — son aproximadamente comparables pero no idénticas a nuestros resultados.
+
+**Resumen de experimentos de Rocío:**
+
+| Experimento | mejor_val (CD-L1 val) | Épocas | Estructura |
+|-------------|----------------------|--------|-----------|
+| PCN v3 | 0.0715 | 300 | Solo train |
+| **PCN v4 / pretrain** | **0.0696** | 150 | Pretrain |
+| PCN v8 / finetune | 0.1240 ⚠️ | 126 | Finetune fallido |
+| PCN v9 / pretrain | 0.0894 | 150 | Pretrain |
+| PCN v9 / finetune | 0.0859 | 550 | Finetune |
+| TopNet / pretrain | 0.0805 | 124 | Pretrain |
+| **TopNet / finetune** | **0.0795** | 359 | Finetune |
+| TopNet / finetune_congelado | 0.0818 | 405 | Encoder congelado |
+
+**Mejor resultado de Rocío: PCN v4/pretrain con val=0.0696**, comparable a Raquel PCN v4 (CD test=0.0641) y PCN v5 (0.0630). Las diferencias entre val y test y entre splits explican la pequeña diferencia.
+
+**Análisis por experimento:**
+
+1. **PCN v3 (0.0715)** — Consistente con el PCN v3 de Raquel (CD test=0.0665). Rocío entrena 300 épocas sin plateau hasta el final.
+
+2. **PCN v4/pretrain (0.0696)** — Mejor resultado PCN de Rocío. Estrategia pretrain con curriculum de 150 épocas en 3 fases (val loss desciende en escalones cada 50 épocas, patrón típico de curriculum).
+
+3. **PCN v8/finetune (0.1240 ⚠️)** — El finetune falló: `epocas_sin_mejora=121` con solo 126 épocas totales. El mejor valor se alcanzó en la época ~5 y luego empeoró. Posiblemente intentó adaptar a dominio FB real con demasiado cambio de distribución.
+
+4. **PCN v9/finetune (0.0859)** — Mejoró sobre v9/pretrain (0.0894) pero peor que v4. El finetune convergió lentamente en 550 épocas.
+
+5. **TopNet (0.0795 finetune)** — Mejor que PCN v3 (0.0715) pero peor que PCN v4 (0.0696). La estrategia congelada (0.0818) da peor resultado que finetune completo (0.0795). Pretrain (0.0805) ya alcanza buenos valores en 124 épocas.
+
+**Conclusiones:**
+- **PCN v4 de Rocío es el mejor PCN general** (0.0696 val), empatado con Raquel PCN v4.
+- **TopNet es competitivo pero no supera a PCN** en sus experimentos.
+- **PoinTr sigue siendo superior a ambos**: nuestro PoinTr v5_obj (CD=0.0306) es ~2.3× mejor que el mejor PCN de Rocío.
+- Los checkpoints de Rocío NO tienen `metricas.json` — sus resultados vienen de `estado_entrenamiento.json` y son métricas de validación, no de test. Para publicar en la memoria del TFM habría que añadir una celda de evaluación formal sobre test set.
+
+**Datasets usados por Rocío:** no determinados sin leer sus notebooks (`/Rocio/scripts modelos/pcn/E3_PCN_mejorado_v3.ipynb` etc.) — pendiente si se necesita para el TFM.
+
+**Archivos:**
+- Notebook: `E3/colab_entrenar_pointr_v5.ipynb`
+- Modelo: Drive → `Datos_E2_E3/E3/Raquel/modelos/v5_fb_obj/best.pt`
+- Resultados: Drive → `Datos_E2_E3/E3/Raquel/resultados/v5_fb_obj/`
+
+---
+
+### H29 — PoinTr v6_obj_sn: MEJOR resultado del proyecto (CD=0.0245, F=0.4547)
+*(28 ago 2026)*
+
+**Experimento:** `v6_obj_sn` — Objaverse v2 (397p) + ShapeNet roturas (2104p), 500 épocas, A100 40GB.
+
+| Métrica | v6_obj_sn | v5_obj (anterior mejor) | Δ |
+|---------|-----------|-------------------------|---|
+| CD-L1 | **0.0245** | 0.0306 | −0.0061 (−20%) |
+| F-Score | **0.4547** | 0.2701 | +0.1846 (+68%) |
+| Best epoch | 486/500 | 257/300 | — |
+| Test n | 251 | 41 | ×6 más representativo |
+| Datos | Ob v2 + SN | Ob v2 | +2104 pares ShapeNet |
+
+**Conclusión:** Añadir ShapeNet (2104 pares) es el factor más importante hasta la fecha. La mejora en F-Score (+68%) es más llamativa que la del CD (−20%): el modelo ahora acierta en los detalles finos, no solo en la forma global.
+
+**Observaciones de las muestras individuales:**
+- ShapeNet: CD entre 0.0139 y 0.0345; F entre 0.26 y 0.63 — muy variable por objeto
+- Objaverse: CD≈0.035, F≈0.08 — más difícil que ShapeNet (geometrías más diversas)
+- Error coloring (umbral 0.05): 83–92% de puntos correctos
+- Best epoch 486/500 → modelo casi convergido al final; ≤2 milésimas más con más épocas
+
+**Próximo experimento sugerido:** `v6_all` (añadir FB v2) para ver si los 61 pares reales ayudan o perjudican a esta escala.
+
+- Modelo: Drive → `Datos_E2_E3/E3/Raquel/modelos/v6_obj_sn/best.pt`
+- Resultados: Drive → `Datos_E2_E3/E3/Raquel/resultados/v6_obj_sn/`
+- Notebook: `E3/colab_entrenar_pointr_v6.ipynb`
+
+---
+
 ### Hecho
 - [x] 246 modelos .glb de Objaverse descargados → `Datos/objaverse/raw/` — `Scripts/descargar_tazas.py`
 - [x] 197 modelos Objaverse normalizados (.ply) → `Datos/objaverse/limpias/` — `Scripts/filtrar_normalizar_tazas.py`
@@ -770,6 +1031,7 @@ Primer entrenamiento PoinTr con datos limpios (blacklist de 1.958 pares excluido
 - [x] **Roturas sintéticas v2 generadas** — 2.299 pares (plano+chip+cuña, filtro PCA) → `sintetico_roturas_v2/` en Drive (15 ago 2026) — `E3/generar_roturas_standalone.ipynb`
 - [x] **PCN v4 entrenado** — CD=0.0641, F=0.0236, época 480/500, A100 (15 ago 2026) — `E3/colab_entrenar_pcn_v4.ipynb`
 - [x] **PCN v5 entrenado** — CD=0.0630, F=0.0257, época 445/500, A100 (15 ago 2026) — fix centroide (H19) — `E3/colab_entrenar_pcn_v5.ipynb`
+- [x] **PoinTr v6_obj_sn entrenado** — CD=0.0245, F=0.4547, época 486/500, A100 (28 ago 2026) — MEJOR resultado del proyecto — `E3/colab_entrenar_pointr_v6.ipynb`
 - [x] **PoinTr v1 notebook listo y verificado en CPU** — prueba 2 épocas/200 muestras OK (16 ago 2026) — `E3/colab_entrenar_pointr_v1.ipynb` + `E3/colab_entrenar_pointr_v1_prueba.ipynb` — pendiente entrenamiento real con T4/A100
 - [x] `Scripts/descargar_co3d.py` creado
 - [x] Docs de organización generados: TFM_09, TFM_10, TFM_11
