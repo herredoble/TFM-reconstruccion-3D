@@ -1016,6 +1016,33 @@ Sus métricas son `mejor_val` (CD-L1 sobre validación), **no CD-L1 de test inde
 
 ---
 
+### H30 — PoinTr v6_fb_obj_sn: añadir FB v2 empeora respecto a v6_obj_sn
+*(28 ago 2026)*
+
+**Experimento:** `v6_fb_obj_sn` — FB v2 (60p) + Objaverse v2 (397p) + ShapeNet roturas (855p), 500 épocas, A100 40GB.
+
+| Métrica | v6_fb_obj_sn | v6_obj_sn (mejor) | Δ |
+|---------|-------------|-------------------|---|
+| CD-L1 | 0.0297 | **0.0245** | +0.0052 (+21%) **peor** |
+| F-Score | 0.3866 | **0.4547** | −0.0681 (−15%) **peor** |
+| Best epoch | 407/500 | 486/500 | — |
+| Test n | 132 | 251 | — |
+| ShapeNet pares | 855 | 2104 | ×2.5 menos |
+
+**Conclusión:** Añadir los 61 pares reales de Fantastic Breaks perjudica el modelo. Hay dos factores confundidos:
+1. **FB v2 (60 pares reales) es más ruidoso** que los sintéticos — la muestra [6] "05_05005" (FB real) obtuvo CD=0.0724, solo 43% correctos, vs 84–93% en objetos ShapeNet.
+2. **Menos ShapeNet** — Drive tenía solo 855 pares en esta sesión vs 2104 en v6_obj_sn (posible sesión Colab distinta con menos datos copiados).
+
+Ambos factores se pueden separar con un experimento `v6_obj_sn_long` (solo Ob+SN con 2104p y más épocas), pero dado que v6_obj_sn ya es el MEJOR resultado del proyecto, se prioriza pasar a E4.
+
+**Observación clave:** Fantastic Breaks reales son fundamentalmente más difíciles que sintéticos. Para generalizar a objetos reales se necesitaría una estrategia específica (data augmentation de ruido, o entrenamiento en dos fases).
+
+- Modelo: Drive → `Datos_E2_E3/E3/Raquel/modelos/v6_fb_obj_sn/best.pt`
+- Resultados: Drive → `Datos_E2_E3/E3/Raquel/resultados/v6_fb_obj_sn/`
+- Notebook: `E3/colab_entrenar_pointr_v6_all_EJEC.ipynb`
+
+---
+
 ### Hecho
 - [x] 246 modelos .glb de Objaverse descargados → `Datos/objaverse/raw/` — `Scripts/descargar_tazas.py`
 - [x] 197 modelos Objaverse normalizados (.ply) → `Datos/objaverse/limpias/` — `Scripts/filtrar_normalizar_tazas.py`
@@ -1032,6 +1059,7 @@ Sus métricas son `mejor_val` (CD-L1 sobre validación), **no CD-L1 de test inde
 - [x] **PCN v4 entrenado** — CD=0.0641, F=0.0236, época 480/500, A100 (15 ago 2026) — `E3/colab_entrenar_pcn_v4.ipynb`
 - [x] **PCN v5 entrenado** — CD=0.0630, F=0.0257, época 445/500, A100 (15 ago 2026) — fix centroide (H19) — `E3/colab_entrenar_pcn_v5.ipynb`
 - [x] **PoinTr v6_obj_sn entrenado** — CD=0.0245, F=0.4547, época 486/500, A100 (28 ago 2026) — MEJOR resultado del proyecto — `E3/colab_entrenar_pointr_v6.ipynb`
+- [x] **PoinTr v6_fb_obj_sn entrenado** — CD=0.0297, F=0.3866, época 407/500, A100 (28 ago 2026) — FB v2 empeora vs v6_obj_sn — `E3/colab_entrenar_pointr_v6_all_EJEC.ipynb`
 - [x] **PoinTr v1 notebook listo y verificado en CPU** — prueba 2 épocas/200 muestras OK (16 ago 2026) — `E3/colab_entrenar_pointr_v1.ipynb` + `E3/colab_entrenar_pointr_v1_prueba.ipynb` — pendiente entrenamiento real con T4/A100
 - [x] `Scripts/descargar_co3d.py` creado
 - [x] Docs de organización generados: TFM_09, TFM_10, TFM_11
