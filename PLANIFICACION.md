@@ -62,7 +62,9 @@ Estado a 25 jul 2026:
 - [ ] Entrenamiento Pix2Vox — siguiente paso de Álvaro
 - [ ] Validación con tazas rotas
 
-⚠️ **Impacto en contrato E2→E3:** El plan original era que E2 entregase `.npy (2048,3)` (nube de puntos). Con Pix2Vox, E2 entrega un **voxel grid**. Hay que acordar la conversión voxel → nube de puntos antes de la integración. Luis debe coordinar esto.
+✅ **Conversión E2→E3 resuelta (6 sep 2026):** `Scripts/convertir_voxels_a_nube.py` convierte voxel grid 32×32×32 de Pix2Vox++ a nube (2048,3) normalizada. Usar `from Scripts.convertir_voxels_a_nube import voxels_a_nube`.
+
+⚠️ **Pendiente confirmar con Álvaro:** ¿el grid de Pix2Vox++ es 32³ o 64³? El script soporta cualquier tamaño pero hay que verificar.
 
 ---
 
@@ -80,7 +82,7 @@ Estado a 25 jul 2026:
 
 | Persona | Responsabilidad | Primera tarea |
 |---------|----------------|---------------|
-| **Raquel** | Datos + pipeline E3 | ~~Fantastic Breaks preprocesado~~ ✅ · ~~Generación sintética de roturas (v1)~~ ✅ · ~~Data loader PyTorch~~ ✅ · ~~`E3/train.py` PCN v1~~ ✅ (CD=0.077) · ~~`E3/evaluate.py`~~ ✅ · ~~**PCN v3 entrenado**~~ ✅ (CD=0.0665, F=0.024, A100) · ~~**Roturas sintéticas v2**~~ ✅ (plano+chip+cuña, 2.299 pares) · ~~**PCN v4 entrenado**~~ ✅ (CD=0.0641, F=0.0236, época 480, A100) · ~~**PCN v5 entrenado**~~ ✅ (CD=0.0630, F=0.0257, época 445, fix centroide) · ~~**PoinTr v1 notebook verificado en CPU**~~ ✅ (16 ago) · ~~**PoinTr v2 entrenado**~~ ✅ (CD=0.0533, F=0.3278, T4, época 150, blacklist) · ~~**PoinTr v3 entrenado**~~ ✅ (CENTRAR_EN_ROTO=False, 200 ep, best=época 155, val=0.1093) · ~~**PoinTr v4 entrenado**~~ ✅ (CD=0.0569, F=0.0285, época 285, solo FB v2) · ~~**PoinTr v5_fb_obj entrenado**~~ ✅ **(CD=0.0323, F=0.2548, época 289, FB v2+Obj v2, 47 test — mejor resultado)** · **PoinTr v5_obj / v5_all** ⏳ pendientes |
+| **Raquel** | Datos + pipeline E3 | ~~Fantastic Breaks preprocesado~~ ✅ · ~~Generación sintética de roturas (v1)~~ ✅ · ~~Data loader PyTorch~~ ✅ · ~~`E3/train.py` PCN v1~~ ✅ (CD=0.077) · ~~`E3/evaluate.py`~~ ✅ · ~~**PCN v3 entrenado**~~ ✅ (CD=0.0665, F=0.024, A100) · ~~**Roturas sintéticas v2**~~ ✅ (plano+chip+cuña, 2.299 pares) · ~~**PCN v4 entrenado**~~ ✅ (CD=0.0641, F=0.0236, época 480, A100) · ~~**PCN v5 entrenado**~~ ✅ (CD=0.0630, F=0.0257, época 445, fix centroide) · ~~**PoinTr v1 notebook verificado en CPU**~~ ✅ (16 ago) · ~~**PoinTr v2 entrenado**~~ ✅ (CD=0.0533, F=0.3278, T4, época 150, blacklist) · ~~**PoinTr v3 entrenado**~~ ✅ (CENTRAR_EN_ROTO=False, 200 ep, best=época 155, val=0.1093) · ~~**PoinTr v4 entrenado**~~ ✅ (CD=0.0569, F=0.0285, época 285, solo FB v2) · ~~**PoinTr v5_fb_obj entrenado**~~ ✅ (CD=0.0323, F=0.2548, época 289, FB v2+Obj v2) · ~~**PoinTr v5_obj entrenado**~~ ✅ (CD=0.0306, F=0.270, época 490) · ~~**PoinTr v6_obj_sn entrenado**~~ ✅ **(CD=0.0245, F=0.4547, época 486/500 — MEJOR RESULTADO, 251 test)** · ~~**E4 pipeline STL testeado**~~ ✅ (Poisson d7, 6 objetos, euler diagnóstico GT) · ~~**`Scripts/convertir_voxels_a_nube.py`**~~ ✅ (conversión E2→E3 vóxeles→nube, FPS) · ~~**`E5/app_pipeline_demo.ipynb`**~~ ✅ (pipeline E2→E3→E4 + app Gradio) · ~~**Secciones 6 y 7 memoria TFM redactadas**~~ ✅ (`Documentacion/secciones_pendientes_para_word.html`) |
 | **Rocío** | Arquitectura del modelo de reparación | Research spike: comparar PoinTr, SnowFlakeNet, PCN. Elegir el baseline. Primer entrenamiento en Fantastic Breaks |
 
 ---
