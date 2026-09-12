@@ -144,12 +144,16 @@ def _centros_voxel(mascara: np.ndarray, D: int, H: int, W: int) -> np.ndarray:
 
 
 def _mascara_superficie(ocupado: np.ndarray) -> np.ndarray:
-    """Vóxeles ocupados que tienen al menos un vecino (6-conexo) vacío."""
-    from scipy.ndimage import binary_dilation
-    kernel = np.array([[[0,0,0],[0,1,0],[0,0,0]],
-                       [[0,1,0],[1,1,1],[0,1,0]],
-                       [[0,0,0],[0,1,0],[0,0,0]]], dtype=bool)
-    dilatado = binary_dilation(~ocupado, structure=kernel)
+    """Vóxeles ocupados que tienen al menos un vecino (6-conexo) vacío.
+    Implementado con numpy (sin scipy) para evitar conflictos de numpy._core en Colab.
+    """
+    vacio = ~ocupado
+    # Un vóxel ocupado es superficie si alguno de sus 6 vecinos directos está vacío
+    dilatado = (
+        np.roll(vacio,  1, axis=0) | np.roll(vacio, -1, axis=0) |
+        np.roll(vacio,  1, axis=1) | np.roll(vacio, -1, axis=1) |
+        np.roll(vacio,  1, axis=2) | np.roll(vacio, -1, axis=2)
+    )
     return ocupado & dilatado
 
 
