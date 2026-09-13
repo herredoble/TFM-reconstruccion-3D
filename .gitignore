@@ -1,38 +1,26 @@
-# --- Datos grandes (van en Drive/HuggingFace, NO en Git) ---
-Datos/
+# --- Carpetas marcadas para excluir (-----) ---
+*-----/
+*-----
+
+# --- Datos grandes y modelos entrenados (van en Drive) ---
 Modelos_generados/
+*/checkpoints/*.pt
+*/checkpoints/*.pth
 
-# --- Mirror local de Drive (estructura idéntica a Datos_E2_E3/E3/ en Drive) ---
-# Descarga manual desde Drive. Ruta: Datos/E3_drive/
-# Estructura: modelos/v1_pcn/ · modelos/v2_pcn/ · resultados/v1_pcn/ etc.
-
-# --- Modelos entrenados y resultados (van en Drive) ---
-E3/checkpoints/
-*.zip
-
-# --- Notebooks ejecutados, con errores o de prueba ---
-*ejecutado*.ipynb
-*_EJEC*.ipynb
-*_ERROR*.ipynb
-*_prueba*.ipynb
-* (2).ipynb
-* (3).ipynb
-
-# --- Capturas y figuras locales ---
-Figuras/capturas_drive/
-
-# --- Archivos 3D grandes ---
+# --- Archivos 3D grandes (datos, no resultados) ---
 *.glb
 *.ply
-*.stl
 *.obj
 *.mtl
+
+# --- ZIPs ---
+*.zip
 
 # --- Documentos universitarios y materiales base ---
 BasesTFM/
 TEMAS TFM.pdf
 
-# --- Memoria en Word (la versión canónica es el LaTeX en Latex/) ---
+# --- Memoria en Word (la versión canónica es el LaTeX en Latex++) ---
 *.docx
 Memoria TFM*.md
 
@@ -41,6 +29,9 @@ lastClaude.txt
 figuras_formulas/
 cell*_out*.png
 *_cell*_out*.png
+
+# --- Gradio temporales ---
+.gradio/
 
 # --- Archivos generados automáticamente ---
 *.pdf
