@@ -10,8 +10,11 @@ Modelos_generados/
 E3/checkpoints/
 *.zip
 
-# --- Notebooks ejecutados y copias de Colab ---
+# --- Notebooks ejecutados, con errores o de prueba ---
 *ejecutado*.ipynb
+*_EJEC*.ipynb
+*_ERROR*.ipynb
+*_prueba*.ipynb
 * (2).ipynb
 * (3).ipynb
 
@@ -28,6 +31,16 @@ Figuras/capturas_drive/
 # --- Documentos universitarios y materiales base ---
 BasesTFM/
 TEMAS TFM.pdf
+
+# --- Memoria en Word (la versión canónica es el LaTeX en Latex/) ---
+*.docx
+Memoria TFM*.md
+
+# --- Archivos temporales de sesión ---
+lastClaude.txt
+figuras_formulas/
+cell*_out*.png
+*_cell*_out*.png
 
 # --- Archivos generados automáticamente ---
 *.pdf
