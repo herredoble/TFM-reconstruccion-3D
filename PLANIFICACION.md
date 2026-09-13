@@ -1,113 +1,101 @@
-# Planificación TFM — decisiones urgentes y próximos pasos
+# Planificación TFM — estado final a entrega
 
-> Documento vivo de sprint. Lo más importante está arriba.
-> Raquel Roca · se actualiza con cada avance.
-
----
-
-## 🔴 URGENTE ESTA SEMANA — Todo el grupo
-
-### Cerrar el contrato de interfaz E2→E3
-
-**Es la decisión más crítica antes de que nadie escriba una línea de modelo.** Sin esto E2 y E3 trabajan en paralelo y luego no se integran.
-
-Preguntas a responder en reunión:
-
-- [ ] ¿E2 entrega point cloud o malla?
-- [ ] ¿Cuántos puntos? (estándar: 2.048 o 8.192)
-- [ ] ¿Con normales o solo XYZ?
-- [ ] ¿Cómo representamos "roto" para que E3 lo entienda?
-
-Ver `Documentacion/TFM_11_Contratos_Interfaz.md` para el formato de referencia.
+> Raquel Roca · última actualización: 13 sep 2026 (1 día antes de la entrega)
+> Entrega: **15 septiembre 2026**
 
 ---
 
-## 🔴 URGENTE ESTA SEMANA — Raquel (primera tarea concreta)
+## Estado final del pipeline — COMPLETO ✅
 
-### ~~0. Subir datos procesados a Google Drive~~ ✅ HECHO (1 jul 2026)
-~~Antes de la reunión del grupo, subir estas dos carpetas a la carpeta Drive compartida (~700 MB):~~
-- ~~`Datos/shapenet/limpias/`~~
-- ~~`Datos/objaverse/limpias/`~~
+```
+[Fotos] → E2 (Pix2Vox++) → [Nube rota (2048,3)] → E3 (PoinTr) → [Nube completa]
+       → E4 (Poisson) → [STL watertight] → APP+++++ (Gradio REBUILD3D)
+```
 
-### ~~1. Preprocesado de Fantastic Breaks para E3~~ ✅ HECHO (11 jul 2026)
-
-~~Tienes 150 pares roto/completo en `Datos/fantastic_breaks/`.~~
-
-**Resultado:** 61 pares vasija (mug+bowl+jar+cup) submuestreados a 2.048 puntos.
-122 archivos `.npy`, 3 MB → `Datos/fantastic_breaks/procesado/`
-Script: `Scripts/preprocesar_fantastic_breaks.py`
-Documentación para Rocío: `Documentacion/TFM_12_Datos_E3_Rocio.md`
-
-**Corrección de mapping:** 03=jar (no cup), 05=cup (no jar) — verificado contra el paper.
-Si hace falta ampliar: `--clases vasijas,plate` (96 pares) o `--clases todas` (150 pares).
-
-### ~~2. Subir Fantastic Breaks procesado a Drive~~ ✅ HECHO (11 jul 2026)
-~~Subir `Datos/fantastic_breaks/procesado/` a Drive del grupo como `fantastic_breaks_procesado/`.~~
-Subido: 122 archivos .npy, 3 MB. Rocío puede empezar a entrenar.
-
-> Fantastic Breaks raw (8 GB) NO hace falta subirlo a Drive — Rocío lo descarga con:
-> `python Scripts/descargar_fantastic_breaks.py`
+**Mejor resultado E3:** PoinTr v6_obj_sn · CD = 0.0245 · F-Score = 0.4547 · época 486/500  
+**Demo funcional:** fotos reales de tazas rotas → STL imprimible (E5 + Gradio app)
 
 ---
 
-## ~~Decisión pendiente — E2: NeRF vs feed-forward~~ ✅ DECIDIDO (25 jul 2026)
+## Hitos completados
 
-**Método elegido: Pix2Vox** (multi-vista → voxel grid en formato `.binvox`).
+### Raquel — E3 datos + pipeline + memoria
 
-Álvaro descartó nerfacto y Zero123. Pix2Vox reconstruye una malla voxelizada a partir de N imágenes 2D desde ángulos fijos. Formato de datos: `.binvox` (voxels). Imágenes: 20 vistas por objeto, mismos ángulos para todos.
+| Tarea | Fecha | Resultado |
+|-------|-------|-----------|
+| Preprocesado Fantastic Breaks | 11 jul 2026 | 61 pares vasija, 2.048 pts |
+| Subir datos a Drive | 11 jul 2026 | shapenet_limpias/ + objaverse_limpias/ + FB procesado |
+| Generación roturas sintéticas v1 | ago 2026 | 2.299 pares (plano+chip+cuña) |
+| Data loader PyTorch E3 | ago 2026 | dataset.py + train.py + evaluate.py |
+| PCN v3 entrenado | ago 2026 | CD=0.0665, F=0.024, A100 |
+| Roturas sintéticas v2 | ago 2026 | plano+chip+cuña mejorado |
+| PCN v4 entrenado | ago 2026 | CD=0.0641, F=0.0236, época 480 |
+| PCN v5 entrenado | ago 2026 | CD=0.0630, F=0.0257, época 445 (fix centroide) |
+| PoinTr v1 → v4 | ago 2026 | iteraciones de mejora de datos y arquitectura |
+| PoinTr v5_obj | ago 2026 | CD=0.0306, F=0.270, época 490 |
+| **PoinTr v6_obj_sn** | **27 ago 2026** | **CD=0.0245, F=0.4547 — MEJOR RESULTADO** |
+| PoinTr v7 fine-tune (FB) | sep 2026 | fine-tuning con Fantastic Breaks |
+| E4 pipeline STL | 6 sep 2026 | Poisson depth=7–10, 6 objetos validados |
+| convertir_voxels_a_nube.py | 6 sep 2026 | conversión E2→E3 (voxel 32³ → nube 2048,3) |
+| E5 app_pipeline_demo.ipynb | 6 sep 2026 | pipeline E2→E3→E4 + Gradio |
+| Secciones memoria TFM | 6 sep 2026 | sec.6 E3 + sec.7 E4 redactadas |
+| memoria_tfm.tex completo | 11 sep 2026 | LaTeX/Overleaf + referencias.bib (19 entradas) |
+| APP+++++ Gradio REBUILD3D | 12 sep 2026 | demo con fotos reales de tazas, 5 ángulos fijos |
+| Reorganización GitHub | 13 sep 2026 | +++++  repo limpio, PR a main, README actualizado |
 
-Estado a 25 jul 2026:
-- [x] Voxelización de todas las categorías — `Datos_E2/Datos_E2_voxel`
-- [x] Generación de imágenes en curso (20 vistas/objeto) — `Datos_E2/IMG E2`
-- [ ] Entrenamiento Pix2Vox — siguiente paso de Álvaro
-- [ ] Validación con tazas rotas
+### E2 — Álvaro + Almu (Pix2Vox++)
 
-✅ **Conversión E2→E3 resuelta (6 sep 2026):** `Scripts/convertir_voxels_a_nube.py` convierte voxel grid 32×32×32 de Pix2Vox++ a nube (2048,3) normalizada. Usar `from Scripts.convertir_voxels_a_nube import voxels_a_nube`.
+| Tarea | Fecha | Resultado |
+|-------|-------|-----------|
+| Método elegido: Pix2Vox++ | 25 jul 2026 | multi-vista → voxel grid 32³ |
+| Imágenes sintéticas (5 vistas) | ago 2026 | 20 categorías ShapeNet |
+| Fine-tuning con tazas rotas | ago 2026 | mejor generalización con tazas |
+| Evaluación con tazas rotas reales | sep 2026 | exp14 mejor resultado |
+| E1 simplificado | sep 2026 | 5 ángulos fijos + alpha compositing (sin SAM/COLMAP) |
+| Interfaz E2→E3 resuelta | 6 sep 2026 | voxel 32³ → nube (2048,3) con FPS |
 
-⚠️ **Pendiente confirmar con Álvaro:** ¿el grid de Pix2Vox++ es 32³ o 64³? El script soporta cualquier tamaño pero hay que verificar.
+### Grupo — integración y entrega
 
----
-
-## Reparto del equipo
-
-### Etapa 2 — Reconstrucción (Álvaro, Almu, Luis)
-
-| Persona | Responsabilidad | Primera tarea |
-|---------|----------------|---------------|
-| **Álvaro** | Arquitectura y decisión de método | Research spike: nerfacto vs Zero123/One-2-3-45. Decisión en 1 semana |
-| **Almu** | Implementación del pipeline E1+E2 | Pipeline de juguete: 5 fotos sintéticas de una taza ShapeNet → point cloud básico con nerfstudio |
-| **Luis** | Métricas e integración E2→E3 | Definir métricas (Chamfer Distance, F-Score), implementar evaluación; luego encargarse del contrato E2→E3 |
-
-### Etapa 3 — Reparación (Raquel, Rocío)
-
-| Persona | Responsabilidad | Primera tarea |
-|---------|----------------|---------------|
-| **Raquel** | Datos + pipeline E3 | ~~Fantastic Breaks preprocesado~~ ✅ · ~~Generación sintética de roturas (v1)~~ ✅ · ~~Data loader PyTorch~~ ✅ · ~~`E3/train.py` PCN v1~~ ✅ (CD=0.077) · ~~`E3/evaluate.py`~~ ✅ · ~~**PCN v3 entrenado**~~ ✅ (CD=0.0665, F=0.024, A100) · ~~**Roturas sintéticas v2**~~ ✅ (plano+chip+cuña, 2.299 pares) · ~~**PCN v4 entrenado**~~ ✅ (CD=0.0641, F=0.0236, época 480, A100) · ~~**PCN v5 entrenado**~~ ✅ (CD=0.0630, F=0.0257, época 445, fix centroide) · ~~**PoinTr v1 notebook verificado en CPU**~~ ✅ (16 ago) · ~~**PoinTr v2 entrenado**~~ ✅ (CD=0.0533, F=0.3278, T4, época 150, blacklist) · ~~**PoinTr v3 entrenado**~~ ✅ (CENTRAR_EN_ROTO=False, 200 ep, best=época 155, val=0.1093) · ~~**PoinTr v4 entrenado**~~ ✅ (CD=0.0569, F=0.0285, época 285, solo FB v2) · ~~**PoinTr v5_fb_obj entrenado**~~ ✅ (CD=0.0323, F=0.2548, época 289, FB v2+Obj v2) · ~~**PoinTr v5_obj entrenado**~~ ✅ (CD=0.0306, F=0.270, época 490) · ~~**PoinTr v6_obj_sn entrenado**~~ ✅ **(CD=0.0245, F=0.4547, época 486/500 — MEJOR RESULTADO, 251 test)** · ~~**E4 pipeline STL testeado**~~ ✅ (Poisson d7, 6 objetos, euler diagnóstico GT) · ~~**`Scripts/convertir_voxels_a_nube.py`**~~ ✅ (conversión E2→E3 vóxeles→nube, FPS) · ~~**`E5/app_pipeline_demo.ipynb`**~~ ✅ (pipeline E2→E3→E4 + app Gradio) · ~~**Secciones 6 y 7 memoria TFM redactadas**~~ ✅ (`Documentacion/secciones_pendientes_para_word.html`) |
-| **Rocío** | Arquitectura del modelo de reparación | Research spike: comparar PoinTr, SnowFlakeNet, PCN. Elegir el baseline. Primer entrenamiento en Fantastic Breaks |
-
----
-
-## Cronograma
-
-| Periodo | Hito |
-|---------|------|
-| **Semana 1-2 julio** | TODO EL GRUPO: cerrar interfaz E2↔E3, crear repo GitHub, pipeline de juguete end-to-end |
-| **Semana 3-4 julio** | E2: método elegido, primer entrenamiento (ShapeNet → point cloud) · E3: Fantastic Breaks preprocesado + primer baseline entrenando |
-| **Agosto** | E2: afinar modelo, evaluar con métricas · E3: mejorar modelo, augmentación sintética de roturas en ShapeNet · E4+E5: malla reparada → STL |
-| **1-14 septiembre** | Integración E1+E2+E3+E4+E5 end-to-end · Demo: foto real de taza rota → STL · Memoria y presentación |
-| **15 septiembre** | **Entrega** |
-
-⚠️ **Riesgo:** la integración cae en agosto (vacaciones). Pactar disponibilidad o adelantar lo posible a julio.
+| Tarea | Fecha | Estado |
+|-------|-------|--------|
+| Contrato E2→E3 cerrado | 6 sep 2026 | ✅ numpy float32 (2048,3) centrado |
+| Pipeline end-to-end funcional | 12 sep 2026 | ✅ demo con fotos reales |
+| Repo GitHub limpio | 13 sep 2026 | ✅ PR raquel/e3 → main mergeado |
+| Memoria LaTeX | 13 sep 2026 | ✅ en Overleaf, secciones completas |
 
 ---
 
-## Estado de datasets (referencia rápida)
+## Reparto del equipo — estado final
+
+| Persona | Etapa | Estado |
+|---------|-------|--------|
+| **Álvaro** | E2 arquitectura Pix2Vox++ | ✅ Fine-tuning tazas rotas completo |
+| **Almu** | E1+E2 implementación | ✅ Pipeline fotos → voxels funcional |
+| **Luis** | E2 métricas + integración | ✅ Chamfer Distance y F-Score implementados |
+| **Rocío** | E3 modelo (roturas centradas) | ✅ generar_roturas_centradas.ipynb integrado |
+| **Raquel** | E3 datos + pipeline + memoria | ✅ PoinTr v6 (CD=0.0245) + LaTeX + repo |
+
+---
+
+## Datasets — estado final
 
 | Dataset | Estado | Uso |
 |---------|--------|-----|
-| ShapeNet (mug+bowl+bottle+jar+can) | ✅ 2.170 limpios | E2+E3 train |
-| Objaverse (tazas) | ✅ 197 limpios | E2+E3 train complementario |
-| Fantastic Breaks | ✅ 150 pares roto/completo | E3 train/validación — **preprocesar urgente** |
-| CO3D | Pospuesto a P1 (~150 GB) | E1+E2 fotos reales — cuando el pipeline funcione |
-| ModelNet40 | Pendiente (~500 MB) | E3 complemento |
-| Thingi10K | Pendiente (~3 GB) | E4 imprimibilidad |
+| ShapeNet (mug+bowl+bottle+jar+can) | ✅ 2.170 modelos .ply | E2+E3 entrenamiento |
+| Objaverse (vasijas) | ✅ 197 modelos .ply | E2+E3 complemento |
+| Fantastic Breaks | ✅ 61 pares vasija (2.048 pts) | E3 fine-tuning |
+| Roturas sintéticas | ✅ 2.299 pares generados | E3 entrenamiento |
+| CO3D | Pospuesto a P1 | — |
+
+Los datos viven en Drive (no en Git). Scripts de descarga en `Scripts+++++/`.
+
+---
+
+## Cronograma ejecutado
+
+| Periodo | Hito | Estado |
+|---------|------|--------|
+| Jul 2026 | Datos preprocesados, contratos E2↔E3, arranque modelos | ✅ |
+| Ago 2026 | E2 Pix2Vox++ entrenado, E3 PCN+PoinTr iteraciones, E4 STL | ✅ |
+| 1-13 sep 2026 | PoinTr v6 BEST, E5 app, memoria LaTeX, repo limpio | ✅ |
+| **15 sep 2026** | **Entrega** | ⬅ mañana |
