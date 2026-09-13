@@ -1,0 +1,4 @@
+Modelo: PoinTr v5 (preentreno Objaverse v2 + fine-tuning FB v2)
+CD-L1: 0.048781
+F-Score: 0.028892
+Muestras test: 6

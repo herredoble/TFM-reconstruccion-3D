@@ -1,0 +1,5 @@
+Modelo: PoinTr v4 (solo FB v2 alineado)
+Epoca best: 285
+CD-L1: 0.056893
+F-Score: 0.028477
+Muestras test: 7

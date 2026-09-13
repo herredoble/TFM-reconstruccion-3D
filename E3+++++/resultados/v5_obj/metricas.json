@@ -1,0 +1,16 @@
+{
+  "version": "v5_obj",
+  "modelo": "PoinTr",
+  "fecha": "2026-08-27",
+  "datasets": [
+    "obj"
+  ],
+  "n_pares_total": 397,
+  "n_test": 41,
+  "epochs": 300,
+  "best_epoch": 257,
+  "cd_l1": 0.03061180161993678,
+  "f_score": 0.27010351255899523,
+  "centrar_en_roto": false,
+  "notas": ""
+}

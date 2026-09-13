@@ -1,0 +1,5 @@
+Modelo: PoinTr v1
+Epoca best: 93
+CD-L1: 0.029379
+F-Score: 0.502886
+Muestras test: 236

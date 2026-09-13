@@ -1,0 +1,17 @@
+{
+  "version": "v5_fb_obj",
+  "modelo": "PoinTr",
+  "fecha": "2026-08-27",
+  "datasets": [
+    "fb",
+    "obj"
+  ],
+  "n_pares_total": 457,
+  "n_test": 47,
+  "epochs": 300,
+  "best_epoch": 289,
+  "cd_l1": 0.032336724882430216,
+  "f_score": 0.25484300951691385,
+  "centrar_en_roto": false,
+  "notas": ""
+}

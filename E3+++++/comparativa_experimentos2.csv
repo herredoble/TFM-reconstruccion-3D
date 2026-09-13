@@ -1,0 +1,17 @@
+version,modelo,fecha,datasets,n_pares_total,n_test,epochs,best_epoch,cd_l1,f_score,centrar_en_roto,notas
+PoinTr v6_obj_sn,PoinTr,2026-08-28,"Objaverse v2 + ShapeNet roturas (~2501 pares, solo sintético)",2501,,500,,0.0245,0.4547,False,"Mejor resultado en sintético, pero no evaluado con Fantastic Breaks real -- pregunta que responde v7."
+v6_obj_sn,PoinTr,2026-08-27,obj+sn,2501,251,500,486,0.024532468839218297,0.4547175267985855,False,
+v6_fb_obj_sn,PoinTr,2026-08-28,fb+obj+sn,1312,132,500,407,0.02966185570271178,0.38664946219333535,False,
+PoinTr v5_obj,PoinTr,2026-08-27,"Objaverse v2 (~397 pares, solo sintético)",397,,300,,0.0306,0.2701,False,"Referencia citada como punto de partida en v7. Entrenado y evaluado solo en sintético, nunca contra roturas reales."
+v5_obj,PoinTr,2026-08-27,obj,397,41,300,257,0.03061180161993678,0.27010351255899523,False,
+v5_fb_obj,PoinTr,2026-08-27,fb+obj,457,47,300,289,0.032336724882430216,0.25484300951691385,False,
+PoinTr v2,PoinTr,2026-08-24,FB_v1+sint_filtrado,402,41,150,150,0.0533,0.3278,True,⚠️ F-Score INFLADO (CENTRAR=True) · FB v1 desalineado · 30ep contaminadas
+PoinTr v7_fb_obj_sn_ft2f,PoinTr,2026-08-28,Fase1: Objaverse(397)+ShapeNet(855)=1252 sint. Fase2 fine-tune: FB_v2(60 real),1312,6,"600(fase1, early stop ep.388, mejor ep.348)+100(fase2, early stop ep.58, mejor ep.38)",38,0.0555,0.0304,False,CD_l1=0.0555 vs 0.0245 en sintético -- gap sim-to-real grande. F-score cae de 0.4547 (sintético) a 0.0304 (real). chamfer_dist real no compiló -> se usó mock (posible pérdida de fidelidad en la loss de entrenamiento).
+PoinTr v4,PoinTr,2026-08-25,FB_v2,61,7,300,285,0.0569,0.0285,False,Primer exp con datos limpios · test=7 (varianza alta) · solo FB v2
+TopNet v1,TopNet,2026-08-28,FB + roturas sintéticas (Shapenet + Objaverse) (mismo esquema y mismo fix de centroide que PCN v5),1312,131,500,476,0.0601,0.0329,True,"Mismo encoder que PCN, mismos datos y esquema que PCN v5. Con MENOS pares que PCN v5 (1312 vs 2360), TopNet SUPERA a PCN v5 en ambas métricas (CD_l1=0.0601 vs 0.0630, F-Score=0.0329 vs 0.0257), lo que confirma que el decoder tipo folding de PCN era, al menos parcialmente, el factor limitante -- no solo la escasez de datos reales."
+topnet_v1_comparable_pcnv5,TopNet,2026-09-01,"sintetico_v2+FB (mezcla única, sin filtrar -- igual que PCN v5)",1312,131,,476,0.0601398843902213,0.03292730200381679,True,"Mismo esquema y fix de centroide que PCN v5, pero con la carpeta sintetico_roturas_v2 sustituida por shapenet_roturas+roturas_Objaverse_v2 (la original ya no existe en Drive) -- composicion de datos ligeramente distinta a la de PCN v5."
+PCN v5,PCN,2026-08-15,FB_v1+sint_v2,2360,236,500,445,0.063,0.0257,True,FB v1 desalineado · CENTRAR=True compensa parcialmente · mejor PCN Raquel
+PCN v4,PCN,2026-08-15,FB_v1+sint_v2,2360,236,500,480,0.0641,0.0236,False,FB v1 desalineado · sint v2 plano+chip+cuña
+PCN v3,PCN,2026-08-13,FB_v1+sint_v1,2428,237,400,347,0.0665,0.024,False,FB v1 desalineado · A100
+PCN v1,PCN,2026-08-05,FB_v1+sint_v1,2428,237,100,97,0.0766,0.019,False,FB v1 desalineado · sint plano simple · primer baseline
+PoinTr v3,PoinTr,2026-08-25,FB_v1+sint_filtrado,402,,200,,,,False,Eval pendiente (sesión Colab terminó) · FB v1 desalineado · val_loss=0.1093 ep155

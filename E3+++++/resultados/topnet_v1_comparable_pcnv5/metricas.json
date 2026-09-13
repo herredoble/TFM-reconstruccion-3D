@@ -1,0 +1,16 @@
+{
+  "version": "topnet_v1_comparable_pcnv5",
+  "modelo": "TopNet",
+  "fecha": "2026-09-01",
+  "datasets": "sintetico_v2+FB (mezcla única, sin filtrar -- igual que PCN v5)",
+  "n_pares_total": 1312,
+  "n_test": 131,
+  "epochs_max": 500,
+  "best_epoch": 476,
+  "centrar_en_roto": true,
+  "umbral_fscore": 0.01,
+  "cd_l1": 0.0601398843902213,
+  "f_score": 0.03292730200381679,
+  "n_params": 1254540,
+  "notas": "Mismo esquema y fix de centroide que PCN v5, pero con la carpeta sintetico_roturas_v2 sustituida por shapenet_roturas+roturas_Objaverse_v2 (la original ya no existe en Drive) -- composicion de datos ligeramente distinta a la de PCN v5."
+}

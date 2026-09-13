@@ -1,0 +1,6 @@
+Modelo: PoinTr v5_obj
+Datasets: ['obj']
+Epoca best: 257
+CD-L1: 0.030612
+F-Score: 0.270104
+Muestras test: 41

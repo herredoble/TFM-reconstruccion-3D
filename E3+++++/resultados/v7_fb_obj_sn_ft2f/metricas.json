@@ -1,0 +1,29 @@
+{
+  "version": "v7_fb_obj_sn_ft2f",
+  "modelo": "PoinTr",
+  "fecha": "2026-08-28",
+  "modo_entrenamiento": "finetune_2fases",
+  "datasets_entrenamiento": [
+    "fb",
+    "obj",
+    "sn"
+  ],
+  "epochs_max": 600,
+  "epochs_fase2": 100,
+  "paciencia_early_stopping": 40,
+  "best_epoch_final": 38,
+  "evaluacion_principal": {
+    "cd_l1": 0.05446960932264725,
+    "f_score": 0.030420528647179406,
+    "n": 6,
+    "desglose_fuente": {}
+  },
+  "evaluacion_fb_real": {
+    "cd_l1": 0.05547736740360657,
+    "f_score": 0.030436255154199898,
+    "n": 6,
+    "desglose_fuente": {}
+  },
+  "centrar_en_roto": false,
+  "notas": ""
+}

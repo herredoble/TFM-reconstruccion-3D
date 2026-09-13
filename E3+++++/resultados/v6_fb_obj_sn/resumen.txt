@@ -1,0 +1,6 @@
+Modelo: PoinTr v6_fb_obj_sn
+Datasets: ['fb', 'obj', 'sn']
+Epoca best: 407
+CD-L1: 0.029662
+F-Score: 0.386649
+Muestras test: 132
