@@ -1,0 +1,18 @@
+=== Evaluación E3 — 236 muestras ===
+Checkpoint : E3/checkpoints/best.pt  (época 480)
+Nota       : val-loss del entrenamiento = CD(fine) + 0.5·CD(coarse).
+             Aquí se reporta solo CD(fine) → número más bajo, es correcto.
+
+Chamfer Distance (CD-L1):
+  media    : 0.064096
+  mediana  : 0.056996
+  std      : 0.028339
+  mejor    : 0.027344  (muestra 39)
+  peor     : 0.229480  (muestra 22)
+
+F-Score @ τ=0.01:
+  media    : 0.0236
+  mediana  : 0.0123
+  std      : 0.0286
+  mejor    : 0.1841  (muestra 210)
+  peor     : 0.0000  (muestra 69)

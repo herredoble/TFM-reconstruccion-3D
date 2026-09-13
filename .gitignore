@@ -1,17 +1,37 @@
-# --- Datos grandes (van en Drive/HuggingFace, NO en Git) ---
-Datos/
-Modelos_generados/
+# --- Carpetas marcadas para excluir (-----) ---
+*-----/
+*-----
 
-# --- Archivos 3D grandes ---
+# --- Datos grandes y modelos entrenados (van en Drive) ---
+Modelos_generados/
+*/checkpoints/*.pt
+*/checkpoints/*.pth
+
+# --- Archivos 3D grandes (datos, no resultados) ---
 *.glb
 *.ply
-*.stl
 *.obj
 *.mtl
+
+# --- ZIPs ---
+*.zip
 
 # --- Documentos universitarios y materiales base ---
 BasesTFM/
 TEMAS TFM.pdf
+
+# --- Memoria en Word (la versión canónica es el LaTeX en Latex++) ---
+*.docx
+Memoria TFM*.md
+
+# --- Archivos temporales de sesión ---
+lastClaude.txt
+figuras_formulas/
+cell*_out*.png
+*_cell*_out*.png
+
+# --- Gradio temporales ---
+.gradio/
 
 # --- Archivos generados automáticamente ---
 *.pdf

@@ -1,0 +1,17 @@
+Modelo: PoinTr v7_fb_obj_sn_ft2f
+Modo: finetune_2fases
+Epoca best: 38
+--- Test principal ---
+{
+  "cd_l1": 0.05446960932264725,
+  "f_score": 0.030420528647179406,
+  "n": 6,
+  "desglose_fuente": {}
+}
+--- Fantastic Breaks real (dedicado) ---
+{
+  "cd_l1": 0.05547736740360657,
+  "f_score": 0.030436255154199898,
+  "n": 6,
+  "desglose_fuente": {}
+}

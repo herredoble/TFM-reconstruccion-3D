@@ -50,16 +50,21 @@ Subido: 122 archivos .npy, 3 MB. Rocío puede empezar a entrenar.
 
 ---
 
-## Decisión pendiente — E2: NeRF vs feed-forward
+## ~~Decisión pendiente — E2: NeRF vs feed-forward~~ ✅ DECIDIDO (25 jul 2026)
 
-**Álvaro hace el research spike esta semana.** Decisión antes del fin de semana.
+**Método elegido: Pix2Vox** (multi-vista → voxel grid en formato `.binvox`).
 
-| Opción | Ventaja | Desventaja |
-|--------|---------|------------|
-| NeRF clásico (nerfacto) | No necesita entrenamiento previo, funciona con pocas vistas | Tarda minutos por objeto en inferencia |
-| Feed-forward (Zero123, One-2-3-45) | Inferencia rápida | Requiere más datos de entrenamiento |
+Álvaro descartó nerfacto y Zero123. Pix2Vox reconstruye una malla voxelizada a partir de N imágenes 2D desde ángulos fijos. Formato de datos: `.binvox` (voxels). Imágenes: 20 vistas por objeto, mismos ángulos para todos.
 
-Esta decisión desbloquea la implementación de Almu.
+Estado a 25 jul 2026:
+- [x] Voxelización de todas las categorías — `Datos_E2/Datos_E2_voxel`
+- [x] Generación de imágenes en curso (20 vistas/objeto) — `Datos_E2/IMG E2`
+- [ ] Entrenamiento Pix2Vox — siguiente paso de Álvaro
+- [ ] Validación con tazas rotas
+
+✅ **Conversión E2→E3 resuelta (6 sep 2026):** `Scripts/convertir_voxels_a_nube.py` convierte voxel grid 32×32×32 de Pix2Vox++ a nube (2048,3) normalizada. Usar `from Scripts.convertir_voxels_a_nube import voxels_a_nube`.
+
+⚠️ **Pendiente confirmar con Álvaro:** ¿el grid de Pix2Vox++ es 32³ o 64³? El script soporta cualquier tamaño pero hay que verificar.
 
 ---
 
@@ -77,7 +82,7 @@ Esta decisión desbloquea la implementación de Almu.
 
 | Persona | Responsabilidad | Primera tarea |
 |---------|----------------|---------------|
-| **Raquel** | Datos para E3 | Script de preprocesado de Fantastic Breaks: submuestreo a 2.048 puntos, generar pares (roto, completo) listos para entrenar |
+| **Raquel** | Datos + pipeline E3 | ~~Fantastic Breaks preprocesado~~ ✅ · ~~Generación sintética de roturas (v1)~~ ✅ · ~~Data loader PyTorch~~ ✅ · ~~`E3/train.py` PCN v1~~ ✅ (CD=0.077) · ~~`E3/evaluate.py`~~ ✅ · ~~**PCN v3 entrenado**~~ ✅ (CD=0.0665, F=0.024, A100) · ~~**Roturas sintéticas v2**~~ ✅ (plano+chip+cuña, 2.299 pares) · ~~**PCN v4 entrenado**~~ ✅ (CD=0.0641, F=0.0236, época 480, A100) · ~~**PCN v5 entrenado**~~ ✅ (CD=0.0630, F=0.0257, época 445, fix centroide) · ~~**PoinTr v1 notebook verificado en CPU**~~ ✅ (16 ago) · ~~**PoinTr v2 entrenado**~~ ✅ (CD=0.0533, F=0.3278, T4, época 150, blacklist) · ~~**PoinTr v3 entrenado**~~ ✅ (CENTRAR_EN_ROTO=False, 200 ep, best=época 155, val=0.1093) · ~~**PoinTr v4 entrenado**~~ ✅ (CD=0.0569, F=0.0285, época 285, solo FB v2) · ~~**PoinTr v5_fb_obj entrenado**~~ ✅ (CD=0.0323, F=0.2548, época 289, FB v2+Obj v2) · ~~**PoinTr v5_obj entrenado**~~ ✅ (CD=0.0306, F=0.270, época 490) · ~~**PoinTr v6_obj_sn entrenado**~~ ✅ **(CD=0.0245, F=0.4547, época 486/500 — MEJOR RESULTADO, 251 test)** · ~~**E4 pipeline STL testeado**~~ ✅ (Poisson d7, 6 objetos, euler diagnóstico GT) · ~~**`Scripts/convertir_voxels_a_nube.py`**~~ ✅ (conversión E2→E3 vóxeles→nube, FPS) · ~~**`E5/app_pipeline_demo.ipynb`**~~ ✅ (pipeline E2→E3→E4 + app Gradio) · ~~**Secciones 6 y 7 memoria TFM redactadas**~~ ✅ (`Documentacion/secciones_pendientes_para_word.html`) |
 | **Rocío** | Arquitectura del modelo de reparación | Research spike: comparar PoinTr, SnowFlakeNet, PCN. Elegir el baseline. Primer entrenamiento en Fantastic Breaks |
 
 ---
