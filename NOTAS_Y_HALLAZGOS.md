@@ -1043,6 +1043,36 @@ Ambos factores se pueden separar con un experimento `v6_obj_sn_long` (solo Ob+SN
 
 ---
 
+### H33 — Repo GitHub reorganizado para entrega final
+*(13 sep 2026)*
+
+Reestructuración completa del repo antes de la entrega (15 sep):
+- Carpetas marcadas con `+++++` (versión final aprobada): `APP+++++`, `E2+++++`, `E3+++++`, `E4+++++`, `E5+++++`, `Latex+++++`, `Scripts+++++`
+- Carpetas `-----` excluidas del repo (datos, backups)
+- `.gitignore` simplificado: patrón `*-----` excluye datos; notebooks EJEC incluidos como historial de ejecuciones
+- `APP+++++/` nuevo: app Gradio como scripts Python modulares (`app.py` + `pipeline_e2/e3/e4.py`)
+- `E3+++++/resultados/` con todos los experimentos v1–v7 y métricas
+- `Latex+++++/` con `memoria_tfm.tex` completo (9 ecuaciones, 19 referencias, biblatex)
+- PR `raquel/e3 → main` mergeado el 13 sep 2026
+
+---
+
+### H32 — E5: app REBUILD3D funcional con tazas reales rotas
+*(sep 2026)*
+
+Demo end-to-end con objetos físicos reales:
+- **Input:** 5 fotos de 3 tazas reales distintas (rotas) tomadas en casa
+- **Output:** STL reparado descargable en < 2 minutos
+- **E1 simplificada:** sin SAM/COLMAP — el usuario sigue guía de 5 ángulos fijos; preprocesado de fondo por composición alpha en `pipeline_e2.py`
+- **Resultados guardados:** `E5+++++/Resultados EJEC5/` y `Resultados EJEC6 desde .npy/`
+- **Capturas en repo:** 8 PNGs que muestran la app funcionando
+
+La limitación principal sigue siendo E4: los STLs rara vez son 100% watertight (ver H31), pero Cura/PrusaSlicer los reparan automáticamente al importar.
+
+**Acción tomada:** Documentado como limitación en la memoria. El pipeline funciona de extremo a extremo y es demostrable.
+
+---
+
 ### H31 — E4: mallas de PoinTr rara vez son watertight tras reparación básica
 *(28 ago 2026)*
 
@@ -1082,8 +1112,13 @@ Primera ejecución real de E4 con 8 mallas generadas por PoinTr v6_obj_sn: 7/8 s
 - [x] **PCN v5 entrenado** — CD=0.0630, F=0.0257, época 445/500, A100 (15 ago 2026) — fix centroide (H19) — `E3/colab_entrenar_pcn_v5.ipynb`
 - [x] **PoinTr v6_obj_sn entrenado** — CD=0.0245, F=0.4547, época 486/500, A100 (28 ago 2026) — MEJOR resultado del proyecto — `E3/colab_entrenar_pointr_v6.ipynb`
 - [x] **PoinTr v6_fb_obj_sn entrenado** — CD=0.0297, F=0.3866, época 407/500, A100 (28 ago 2026) — FB v2 empeora vs v6_obj_sn — `E3/colab_entrenar_pointr_v6_all_EJEC.ipynb`
-- [x] **PoinTr v1 notebook listo y verificado en CPU** — prueba 2 épocas/200 muestras OK (16 ago 2026) — `E3/colab_entrenar_pointr_v1.ipynb` + `E3/colab_entrenar_pointr_v1_prueba.ipynb` — pendiente entrenamiento real con T4/A100
-- [x] `Scripts/descargar_co3d.py` creado
+- [x] **PoinTr v7_fb_obj_sn_ft2f entrenado** — fine-tuning de v6_obj_sn con FB v2 (sep 2026) — resultados en `E3+++++/resultados/v7_fb_obj_sn_ft2f/`
+- [x] **PoinTr v1 notebook listo y verificado en CPU** — prueba 2 épocas/200 muestras OK (16 ago 2026)
+- [x] **E4 pipeline STL** — Poisson d10 + pymeshlab fallback + voxel_remesh, 6 objetos validados (ago 2026)
+- [x] **E5 app REBUILD3D funcional** — demo con 3 tazas reales rotas, STL descargable (sep 2026) — `APP+++++/app.py`
+- [x] **Memoria TFM completa** — `Latex+++++/memoria_tfm.tex` (9 ecuaciones, 19 refs, tablas de experimentos E3, secciones E1–E5 + anexos) — sep 2026
+- [x] **Secciones memoria redactadas** — sec. 6 E3 + sec. 7 E4 en Word → convertidas a LaTeX (sep 2026)
+- [x] **Repo GitHub reorganizado** — estructura final `+++++` mergeada a main (13 sep 2026)
 - [x] Docs de organización generados: TFM_09, TFM_10, TFM_11
 
 ### Pendiente — dataset (ordenado por prioridad)
@@ -1095,39 +1130,37 @@ Primera ejecución real de E4 con 8 mallas generadas por PoinTr v6_obj_sn: 7/8 s
 - [ ] Ampliar Objaverse a bowl+bottle+jar+can si se quiere más volumen en ese dataset
 
 ### Pendiente — grupo y arquitectura
-- [ ] Reunión de reparto: rellenar la matriz de propiedad de TFM_09
 - [x] Crear repo GitHub (creado 1 jul 2026) e invitar a los 5
 - [x] Reparto decidido (1 jul 2026): **Álvaro + Almu + Luis → E2** · **Raquel + Rocío → E3**
-- [ ] **[Urgente]** Reunión de grupo: cerrar interfaz E2→E3 antes de empezar a programar modelos (formato exacto, nº puntos, normales sí/no)
-- [ ] Cerrar interfaz E1→E2 (resolución imagen, método E2 con/sin poses, representación intermedia)
-- [ ] Decidir método E2: nerfacto (NeRF) vs Zero123/LRM (image-to-3D feed-forward) — Álvaro
+- [x] Interfaz E2→E3 cerrada: numpy float32 (2048,3), centrado en origen, escala esfera unidad — `Scripts+++++/convertir_voxels_a_nube.py`
+- [x] Método E2 decidido: **Pix2Vox++** (voxel 32³, 5 vistas fijas) — Álvaro (jul 2026)
+- [x] Pipeline end-to-end funcionando: E2→E3→E4→E5 — demo con tazas reales (sep 2026)
 
 ---
 
-## Estructura del repositorio
+## Estructura del repositorio (estado final — 13 sep 2026)
 
 ```
-C:\edf\TFM\
-├── Documentacion\               — guías del proyecto (.md + .pdf)
-├── Notebooks\                   — TFM_06_Cuaderno_Tazas.ipynb
-├── Scripts\                     — descargar_tazas.py · filtrar_normalizar_tazas.py
-│                                  descargar_co3d.py · inspeccionar_shapenet.py
-│                                  filtrar_normalizar_shapenet.py · descargar_fantastic_breaks.py
-├── Datos\
-│   ├── shapenet\
-│   │   ├── raw\                 — 2.547 modelos .obj (5 synsets de vasijas)
-│   │   └── limpias\            — 2.170 modelos .ply filtrados y normalizados
-│   ├── objaverse\
-│   │   ├── raw\                 — 246 modelos .glb originales
-│   │   ├── limpias\            — 197 modelos .ply filtrados y normalizados
-│   │   └── metadatos\          — csv/json de metadatos
-│   ├── fantastic_breaks\        — 150 pares roto/completo (carpetas 00/…149/)
-│   │   └── 00/ … 149/          — model_c.ply · model_b_0.ply · model_r_0.ply · meta_0.npz
-│   └── co3d\                   — (pendiente descargar)
-│       ├── raw\
-│       └── repo\
-├── Modelos_generados\           — salidas del pipeline
-├── Figuras\                     — visualizaciones
-├── NOTAS_Y_HALLAZGOS.md        — este documento
+TFM-reconstruccion-3D/          ← GitHub (rama main)
+├── APP+++++/                   — app Gradio REBUILD3D (app.py + pipeline_e2/e3/e4.py)
+├── E2+++++/                    — notebooks [FINAL] Pix2Vox++ + modelo_pix2vox.py
+├── E3+++++/
+│   ├── notebooks/              — entrenamiento PCN v2–v5 + PoinTr v1–v6
+│   ├── resultados/             — métricas y figuras v1_pcn → v7_fb_obj_sn_ft2f
+│   └── scripts roturas/        — generar_roturas_centradas + preprocesar_fb
+├── E4+++++/Notebooks/          — reparar_stl + pipeline_demo
+├── E5+++++/                    — app_pipeline_demo + fotos tazas reales + capturas
+├── Latex+++++/                 — memoria_tfm.tex + referencias.bib + imagenes/
+├── Scripts+++++/               — scripts pipeline de datos (8 scripts)
+├── Documentacion/              — TFM_11_Contratos_Interfaz.md + diagrama
+├── NOTAS_Y_HALLAZGOS.md
+├── PLANIFICACION.md
 └── README.md
+
+Datos (Drive, no en Git):
+├── shapenet_limpias/           — 2.170 modelos .ply normalizados
+├── objaverse_limpias/          — 197 modelos .ply normalizados
+├── fantastic_breaks_procesado/ — 61 pares vasija (2.048 pts cada uno)
+├── Datos_E2/ (Álvaro/Almu)     — voxels + imágenes E2
+└── E3/Raquel/modelos/          — checkpoints entrenados (best.pt por versión)
 ```
