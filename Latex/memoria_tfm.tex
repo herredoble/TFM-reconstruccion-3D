@@ -1835,22 +1835,26 @@ las métricas intermedias (número de puntos, caras, euler, watertight).
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.48\linewidth}
+  \begin{subfigure}[b]{\linewidth}
     \includegraphics[width=\linewidth]{imagenes/figura_app_rebuild3d_1}
-    \caption{Pipeline completo desde im\'agenes: cinco fotograf\'ias
-             de una taza rota pasan por E1--E4 hasta el STL final.}
+    \caption{Pipeline completo desde im\'agenes: cinco fotograf\'ias de una
+             taza rota pasan por E1 (segmentaci\'on de fondo), E2 (Pix2Vox++),
+             E3 (PoinTr) y E4 (Poisson) hasta generar el STL descargable.}
     \label{fig:app_rebuild3d_imgs}
   \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.48\linewidth}
+
+  \vspace{1em}
+
+  \begin{subfigure}[b]{\linewidth}
     \includegraphics[width=\linewidth]{imagenes/figura_app_rebuild3d_2}
-    \caption{Modo desde \texttt{.npy}: nube de puntos pre-extra\'ida
-             enviada directamente a E3 (PoinTr) y E4 (STL).}
+    \caption{Modo desde \texttt{.npy}: nube de puntos rota pre-extra\'ida enviada
+             directamente a E3 (PoinTr) y E4 (Poisson + STL), omitiendo E1 y E2.}
     \label{fig:app_rebuild3d_npy}
   \end{subfigure}
-  \caption{Interfaz de REBUILD3D\@. Visualizaci\'on 3D interactiva por etapa
-           y layout configurable (apilado o lado a lado).
-           El STL es descargable directamente desde la interfaz.}
+
+  \caption{Interfaz de REBUILD3D\@. Cada vista 3D es interactiva y el layout
+           es configurable (apilado o lado a lado mediante un selector).
+           El archivo STL es descargable directamente desde la interfaz.}
   \label{fig:app_rebuild3d}
 \end{figure}
 
